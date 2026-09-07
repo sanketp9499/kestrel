@@ -13,6 +13,12 @@ are deliberately separate.
 Center interface running on fabricated data. Every company on that board is
 fictional.
 
+**[Live pipeline status →](https://sanketp9499.github.io/kestrel/status.html)** —
+telemetry from the actual running pipeline, pushed after every 8 AM run:
+source health, counts by stage, adapter inventory. Company names, roles and
+salaries are stripped before publishing (`scripts/sync_dashboard.py`), because
+where someone applied is nobody else's business.
+
 ---
 
 ## The pipeline
