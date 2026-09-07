@@ -1,27 +1,27 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-07T00:01:13",
+  "generatedAt": "2026-09-07T08:20:03",
   "counts": {
     "applied": 44,
-    "wishlist": 136,
+    "wishlist": 138,
     "interviews": 1,
-    "discoverNew": 12
+    "discoverNew": 14
   },
   "byStage": {
-    "not": 136,
+    "not": 138,
     "applied": 31,
     "captcha": 13,
     "closed": 10,
     "interview": 1
   },
-  "totalTracked": 191,
+  "totalTracked": 193,
   "sources": [
     {
       "id": "linkedin",
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "1d ago",
+      "synced": "6m ago",
       "health": "working"
     },
     {
@@ -29,7 +29,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "1d ago",
+      "synced": "6m ago",
       "health": "working"
     },
     {
@@ -37,7 +37,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "3d ago",
+      "synced": "6m ago",
       "health": "working"
     },
     {
@@ -45,7 +45,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "3d ago",
+      "synced": "6m ago",
       "health": "working"
     },
     {
@@ -53,7 +53,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "3d ago",
+      "synced": "6m ago",
       "health": "working"
     },
     {
@@ -67,7 +67,7 @@
   ],
   "automation": {
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-06",
+    "lastLogDate": "2026-09-07",
     "daysSinceApplied": 15,
     "stalled": true,
     "bots": [
