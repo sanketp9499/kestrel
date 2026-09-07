@@ -112,7 +112,16 @@ firecrawl scrape "<job_url>" --only-main-content -o ".firecrawl/<slug>.md"
 Wellfound record does, and re-scraping it just burns Firecrawl credits on a JD you already
 hold. Use `description` directly as the markdown.
 
-Save the markdown. Extract any visible custom screening questions.
+Save the markdown **into the application folder as `Job_Description.md`** — not only to
+the scratch dir. The Command Center's detail drawer reads it from there; before Sep 2026
+JDs were discarded after scoring, which is why older applications show no description.
+
+Also record the posting age: every source carries it (`age_str` / `days_old` /
+`estimated_publish_date`). Write it as a `| Posted | <date or "N days ago at discovery"> |`
+row in the folder's Job_Details.md field table. It is the one field that cannot be
+recovered later — a job's posted date disappears from most boards once it closes.
+
+Extract any visible custom screening questions.
 
 ---
 
