@@ -1,0 +1,25 @@
+# real config - only the .example files are public
+scripts/profile.json
+scripts/secrets.local.json
+
+# runtime output
+scripts/daily_report*.json
+scripts/daily_log_*.txt
+scripts/daily_stderr_*.txt
+scripts/apply_log.txt
+scripts/phase*_*.json
+scripts/*.html
+scripts/.firecrawl/
+scripts/.lijd/
+
+# personal artifacts - never tracked in this repo
+Applications/
+Resumes/
+*.xlsx
+*.docx
+*.pdf
+
+__pycache__/
+*.pyc
+node_modules/
+.worktrees/

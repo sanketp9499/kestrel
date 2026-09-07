@@ -1,0 +1,44 @@
+{
+  "_readme": "Copy to profile.json and fill in. profile.json is git-ignored; nothing real belongs in this example.",
+
+  "name": "Alex Rivera",
+  "email": "you@example.com",
+  "phone": "+1 (555) 555-0100",
+  "location": "Your City, ON, Canada",
+  "portfolio": "yourportfolio.example.com",
+  "linkedin": "linkedin.com/in/your-handle",
+
+  "current_company": "Your Current Employer",
+  "work_auth": "e.g. Open Work Permit / Citizen / PR",
+  "salary_min": 55000,
+  "salary_max": 70000,
+  "salary_display": "65000",
+  "start_date": "Two weeks from offer acceptance",
+
+  "experience_years_form": "1-2",
+  "years_figma": "2",
+  "years_graphic_design": "3",
+
+  "education": "Your program, Your school",
+  "skills": ["Figma", "Design systems", "Prototyping", "Usability testing"],
+  "target_roles": ["UX Designer", "Product Designer", "UI/UX Designer"],
+
+  "canada_only": true,
+  "modes": ["Remote (Canada)", "Hybrid (Canada)", "In-person <your city>"],
+
+  "experience_notes": [
+    "Real, verifiable experience bullets the QA answerer may draw on.",
+    "Never put anything here you could not defend in an interview."
+  ],
+
+  "rules": [
+    "Decide your years-of-experience answers ONCE, here — never per form",
+    "Set your geography rule and let the filters enforce it",
+    "Do NOT complete CAPTCHAs - flag for the human instead",
+    "Cold emails are drafts only; a human sends them"
+  ],
+
+  "resume_pdf": "Resumes/Your_Resume.pdf",
+  "resume_docx": "Resumes/Your_Resume.docx",
+  "applications_dir": "Applications"
+}
