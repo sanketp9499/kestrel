@@ -1,0 +1,129 @@
+{
+  "mode": "telemetry",
+  "generatedAt": "2026-09-06T23:59:21",
+  "counts": {
+    "applied": 44,
+    "wishlist": 136,
+    "interviews": 1,
+    "discoverNew": 12
+  },
+  "byStage": {
+    "not": 136,
+    "applied": 31,
+    "captcha": 13,
+    "closed": 10,
+    "interview": 1
+  },
+  "totalTracked": 191,
+  "sources": [
+    {
+      "id": "linkedin",
+      "name": "LinkedIn (Apify actor)",
+      "glyph": "in",
+      "color": "#0A66C2",
+      "synced": "1d ago",
+      "health": "working"
+    },
+    {
+      "id": "indeed",
+      "name": "Indeed CA (Apify actor)",
+      "glyph": "i",
+      "color": "#2557A7",
+      "synced": "1d ago",
+      "health": "working"
+    },
+    {
+      "id": "wellfound",
+      "name": "Wellfound (direct scrape)",
+      "glyph": "W",
+      "color": "#0F1728",
+      "synced": "3d ago",
+      "health": "working"
+    },
+    {
+      "id": "ghboards",
+      "name": "Greenhouse boards (public API)",
+      "glyph": "G",
+      "color": "#23A47F",
+      "synced": "3d ago",
+      "health": "working"
+    },
+    {
+      "id": "lvboards",
+      "name": "Lever boards (public API)",
+      "glyph": "L",
+      "color": "#5A6ACF",
+      "synced": "3d ago",
+      "health": "working"
+    },
+    {
+      "id": "site",
+      "name": "Company sites / referrals (manual)",
+      "glyph": "⌂",
+      "color": "#0F9D74",
+      "synced": "ongoing",
+      "health": "working"
+    }
+  ],
+  "automation": {
+    "scheduledTime": "8:00 AM daily (Windows Task Scheduler — SanketJobHuntPipeline)",
+    "lastLogDate": "2026-09-06",
+    "daysSinceApplied": 14,
+    "stalled": true,
+    "bots": [
+      {
+        "name": "Greenhouse",
+        "file": "greenhouse.py",
+        "exists": true
+      },
+      {
+        "name": "Lever",
+        "file": "lever.py",
+        "exists": true
+      },
+      {
+        "name": "Workday",
+        "file": "workday.py",
+        "exists": true
+      },
+      {
+        "name": "Workable",
+        "file": "workable.py",
+        "exists": true
+      },
+      {
+        "name": "Ashby",
+        "file": "ashby.py",
+        "exists": true
+      },
+      {
+        "name": "Indeed",
+        "file": "indeed.py",
+        "exists": true
+      },
+      {
+        "name": "LinkedIn",
+        "file": "linkedin.py",
+        "exists": true
+      },
+      {
+        "name": "Wellfound",
+        "file": "wellfound.py",
+        "exists": true
+      },
+      {
+        "name": "Direct sites",
+        "file": "direct.py",
+        "exists": true
+      }
+    ],
+    "stages": [
+      "Discover (Apify)",
+      "Extract JD (Firecrawl)",
+      "Prepare docs",
+      "Apply (Playwright)",
+      "Monitor (Gmail)"
+    ]
+  },
+  "note": "Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works."
+}
