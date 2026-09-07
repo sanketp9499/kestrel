@@ -238,23 +238,21 @@ def send_summary(
 
 
 # ── Extra IMAP mailboxes ──────────────────────────────────────────────────
-# Gmail is not the only place employer replies land. aiApply applies on the user's
-# behalf from a proxy mailbox it issues him, you@proxy-mail.example.com — a
-# Migadu-hosted domain (MX aspmx1.migadu.com, and an _imaps._tcp SRV record
-# pointing at imap.migadu.com). Every reply to an aiApply submission goes there
-# and Gmail never sees it, which is how a an interviewing company interview request and an
-# expired Huzzle video interview both went unnoticed. Reading it over IMAP
-# closes that hole without waiting on aiApply to add a forwarding feature.
+# Gmail is not the only place employer replies land. Third-party auto-apply
+# services submit from a proxy mailbox they issue you, and every reply to their
+# submissions goes there — Gmail never sees it, which is how interview requests
+# expire unseen. Reading those mailboxes over IMAP closes the hole without
+# waiting on any vendor to add forwarding.
 #
 # Configure in Scripts/secrets.local.json:
 #   "imap_mailboxes": [
 #     {"label": "aiapply",
 #      "user": "you@proxy-mail.example.com",
 #      "password": "<the mailbox password shown at aiapply.co/app/inbox>",
-#      "host": "imap.migadu.com",
+#      "host": "imap.example.com",
 #      "port": 993}
 #   ]
-IMAP_DEFAULT_HOST = "imap.migadu.com"
+IMAP_DEFAULT_HOST = "imap.example.com"
 IMAP_DEFAULT_PORT = 993
 
 
@@ -353,7 +351,7 @@ def check_all_inboxes(profile: dict, days: int = 7) -> list[dict]:
     """Gmail plus every configured IMAP mailbox, in one list.
 
     This is what Phase 6 should call. check_inbox() on its own is blind to
-    everything aiApply submitted.
+    everything the auto-apply service submitted.
     """
     merged = list(check_inbox(profile))
     for r in merged:
