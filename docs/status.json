@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-06T23:59:21",
+  "generatedAt": "2026-09-07T00:01:13",
   "counts": {
     "applied": 44,
     "wishlist": 136,
@@ -66,9 +66,9 @@
     }
   ],
   "automation": {
-    "scheduledTime": "8:00 AM daily (Windows Task Scheduler — SanketJobHuntPipeline)",
+    "scheduledTime": "8:00 AM daily",
     "lastLogDate": "2026-09-06",
-    "daysSinceApplied": 14,
+    "daysSinceApplied": 15,
     "stalled": true,
     "bots": [
       {
