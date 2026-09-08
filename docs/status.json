@@ -1,27 +1,28 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-07T08:20:03",
+  "generatedAt": "2026-09-08T08:00:44",
   "counts": {
-    "applied": 44,
-    "wishlist": 138,
+    "applied": 31,
+    "captcha": 9,
+    "wishlist": 133,
     "interviews": 1,
     "discoverNew": 14
   },
   "byStage": {
-    "not": 138,
+    "not": 133,
     "applied": 31,
-    "captcha": 13,
+    "captcha": 9,
     "closed": 10,
     "interview": 1
   },
-  "totalTracked": 193,
+  "totalTracked": 184,
   "sources": [
     {
       "id": "linkedin",
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "6m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -29,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "6m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -37,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "6m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -45,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "6m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -53,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "6m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -67,8 +68,8 @@
   ],
   "automation": {
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-07",
-    "daysSinceApplied": 15,
+    "lastLogDate": "2026-09-08",
+    "daysSinceApplied": 16,
     "stalled": true,
     "bots": [
       {
@@ -118,11 +119,11 @@
       }
     ],
     "stages": [
-      "Discover (Apify)",
-      "Extract JD (Firecrawl)",
+      "Discover (6 sources)",
+      "Extract JD",
       "Prepare docs",
       "Apply (Playwright)",
-      "Monitor (Gmail)"
+      "Monitor (Gmail + IMAP)"
     ]
   },
   "note": "Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works."
