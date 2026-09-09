@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-09T08:22:35",
+  "generatedAt": "2026-09-09T10:20:13",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -641,18 +641,18 @@
       },
       {
         "date": "2026-09-09",
-        "verdict": "norun",
+        "verdict": "partial",
         "exit": null,
         "minutes": null,
-        "bytes": 0
+        "bytes": 3793
       }
     ],
     "firstRun": "2026-07-03",
-    "lastRun": "2026-09-08",
-    "ranCount": 53,
+    "lastRun": "2026-09-09",
+    "ranCount": 54,
     "workedCount": 10,
     "windowDays": 69,
-    "cleanRate": 18.9,
+    "cleanRate": 18.5,
     "medianMinutes": 40.1,
     "longestRunMinutes": 593.9,
     "streak": 0,
