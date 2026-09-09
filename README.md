@@ -14,10 +14,13 @@ Center interface running on fabricated data. Every company on that board is
 fictional.
 
 **[Live pipeline status →](https://sanketp9499.github.io/kestrel/status.html)** —
-telemetry from the actual running pipeline, pushed after every 8 AM run:
-source health, counts by stage, adapter inventory. Company names, roles and
-salaries are stripped before publishing (`scripts/sync_dashboard.py`), because
-where someone applied is nobody else's business.
+telemetry from the actual running pipeline, pushed after every 8 AM run. It
+plots the run record rather than a row of green lights, because exit code 0 and
+"did the work" are not the same thing: a run that returns in under two minutes
+is drawn as a stub, which is how a month of silent no-op runs became visible.
+Company names, roles and salaries are stripped before publishing
+(`scripts/sync_dashboard.py`), because where someone applied is nobody else's
+business.
 
 ---
 
@@ -59,6 +62,9 @@ scripts/
   qa_bank.py                 pattern-matched answers for screening questions
   email_monitor.py           Gmail + IMAP reply classification
   update_tracker.py          spreadsheet tracker updates
+  run_history.py             reconstructs the run record from the daily logs
+  telemetry_page.py          renders the public status page
+  sync_dashboard.py          redacts and publishes telemetry to this repo
   run_daily_job.ps1          the scheduler entry point
   tests/                     the test suite
   profile.example.json       who is applying — copy to profile.json
