@@ -7,11 +7,10 @@
 # 3. Invokes the Claude CLI to run RUN_PIPELINE.md
 # 4. Logs all output to a dated log file
 
-# Repo root = parent of this script's folder
-$workspace = Split-Path -Parent $PSScriptRoot
-$scriptDir = Join-Path $workspace "scripts"
+$workspace = "E:\Job Hunter 2026\Job Hunter"
+$scriptDir = Join-Path $workspace "Scripts"
 $secretsFile = Join-Path $scriptDir "secrets.local.json"
-$pipelinePrompt = Join-Path $workspace "scripts\RUN_PIPELINE.md"
+$pipelinePrompt = Join-Path $workspace "Scripts\RUN_PIPELINE.md"
 $logFile = Join-Path $scriptDir "daily_log_$(Get-Date -Format 'yyyy-MM-dd').txt"
 
 # Pipeline scripts log Unicode (arrows, box-drawing). Without this, Python
@@ -75,6 +74,23 @@ $maxAttempts = 3
 $pipelineExitCode = 1
 $stderrFile = Join-Path $scriptDir "daily_stderr_$(Get-Date -Format 'yyyy-MM-dd').txt"
 
+# Exit code 0 is not proof that anything ran. On 2026-09-08 the run produced a
+# clarifying question and no phases at all, returned 0, and this wrapper logged
+# PIPELINE COMPLETE. Nobody found out for a day. So the output has to show
+# evidence that the phases executed before the attempt counts as a success.
+$ranMarker = 'Phase\s*1|Phase\s*5|PIPELINE COMPLETE'
+
+# The marker above catches the symptom. The cause is here: the CLI was handed a
+# bare file path as its prompt, so it read the run as "look at this file" rather
+# than "do this". Scripts/daily_log_2026-08-30.txt has it verbatim, the agent
+# answering "Path alone, no verb. What you want?" and exiting 0. Thirty-four
+# runs ended that way. A path carries no verb and does not say that nobody is
+# at the keyboard, so say both.
+#
+# Keep these literals ASCII. This file is UTF-8 with no BOM, so PowerShell 5.1
+# reads it as ANSI and a single em dash silently terminates the string.
+$pipelineInstruction = "Read the file at $pipelinePrompt and execute it end to end, starting now at Phase 1. This is the unattended 08:00 scheduled run: no operator is at the keyboard and nobody will read a question. Do not ask for confirmation and do not stop to clarify. Where the spec is ambiguous, follow the file and log the decision you made. Scripts/SAFE_MODE.json decides whether anything is actually submitted or emailed; honour it and never override it."
+
 for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
     if ($attempt -gt 1) {
         $waitSeconds = 60 * ($attempt - 1)
@@ -82,13 +98,20 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
         Start-Sleep -Seconds $waitSeconds
     }
 
+    $runOutput = $null
     try {
-        & $claudePath --print $pipelinePrompt 2>> $stderrFile | Tee-Object -FilePath $logFile -Append
+        & $claudePath --print $pipelineInstruction 2>> $stderrFile | Tee-Object -FilePath $logFile -Append -Variable runOutput
         $pipelineExitCode = $LASTEXITCODE
     }
     catch {
         Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Attempt ${attempt}: exception while running Claude CLI: $_"
         $pipelineExitCode = 1
+    }
+
+    $joined = ($runOutput -join "`n")
+    if ($pipelineExitCode -eq 0 -and $joined -notmatch $ranMarker) {
+        Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Attempt ${attempt}: exit 0 but no phase ran. The run answered instead of executing. Treating as a failure."
+        $pipelineExitCode = 2
     }
 
     if ($pipelineExitCode -eq 0) { break }
@@ -108,6 +131,22 @@ if ($pipelineExitCode -ne 0) {
 }
 
 Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
+# --- 4. Publish the dashboard ---------------------------------------------
+# The pipeline runs here; GitHub cannot see E:. So rebuild locally and push,
+# and the hosted dashboard is never more than one run behind. Telemetry-only
+# by default: the public repo gets run status and counts, never company names.
+# Set KESTREL_PRIVATE_REPO to also push the full dashboard to a private repo.
+$publicRepo = "C:\Users\Sanket\Projects\kestrel"
+$syncScript = Join-Path $scriptDir "sync_dashboard.py"
+if (Test-Path (Join-Path $publicRepo ".git")) {
+    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Publishing telemetry to the public repo"
+    & python $syncScript --mode public --repo $publicRepo 2>> $stderrFile | Tee-Object -FilePath $logFile -Append
+}
+if ($env:KESTREL_PRIVATE_REPO -and (Test-Path (Join-Path $env:KESTREL_PRIVATE_REPO ".git"))) {
+    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Publishing full dashboard to the private repo"
+    & python $syncScript --mode private --repo $env:KESTREL_PRIVATE_REPO --no-rebuild 2>> $stderrFile | Tee-Object -FilePath $logFile -Append
+}
+
 Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] PIPELINE COMPLETE (exit code: $pipelineExitCode)"
 Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
 
