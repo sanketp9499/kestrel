@@ -1,34 +1,246 @@
-<!doctype html><meta charset=utf-8>
-<title>Kestrel — pipeline status</title>
-<meta name=viewport content="width=device-width,initial-scale=1">
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Pipeline status — Kestrel</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="The pipeline fired on 53 of the last 69 days. 10 of those runs did a full sweep. Last run 2026-09-08, 0.8 min (short exit). Scheduled 8:00 AM daily.">
 <style>
-:root{color-scheme:dark light}
-body{font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
-max-width:760px;margin:40px auto;padding:0 20px;background:#0d1117;color:#e6edf3}
-h1{font-size:22px;margin:0 0 4px} .sub{color:#8b949e;margin:0 0 28px;font-size:13.5px}
-.cards{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 28px}
-.card{flex:1 1 110px;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px 14px}
-.card b{display:block;font-size:24px} .card span{color:#8b949e;font-size:12px}
-table{width:100%;border-collapse:collapse;margin:0 0 24px}
-td{padding:8px 6px;border-bottom:1px solid #21262d;font-size:13.5px}
-.s{font-weight:600} .working{color:#3fb950} .broken{color:#f85149} .reconnect{color:#d29922}
-.chip{display:inline-block;background:#161b22;border:1px solid #30363d;border-radius:999px;
-padding:3px 10px;margin:0 5px 6px 0;font-size:12px}
-.note{color:#8b949e;font-size:12.5px;border-top:1px solid #21262d;padding-top:16px;margin-top:8px}
-a{color:#58a6ff}
+:root{
+  --bg:#FAF9F6; --card:#FFFFFF; --text:#0A0A0A; --muted:#5B6270;
+  --border:#E7E4DD; --hover:#F3F1EB; --accent:#0F9D74; --accent-soft:#E7F5F0;
+  --warn:#C98A16; --warn-soft:#FBF3E2; --stall:#8A8F98; --fail:#A8412A;
+  --track:#EDEAE3;
+  /* Stage ramp: light to dark by how far a role has travelled. Kept as its own
+     scale so the status colours above never get read as stage colours. */
+  --s1:#D8D2C6; --s2:#0F9D74; --s3:#C98A16; --s4:#9B9488; --s5:#0A0A0A;
+  --shadow:0 1px 2px rgba(16,18,20,.05), 0 8px 24px -12px rgba(16,18,20,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141416; --card:#1E1E21; --text:#F2F2EF; --muted:#9AA1AC;
+    --border:#2C2C31; --hover:#26262B; --accent:#2CBF93; --accent-soft:#12352B;
+    --warn:#E3A83E; --warn-soft:#2E2411; --stall:#71767F; --fail:#E0705A;
+    --track:#3C3C44;
+    --s1:#3A3A40; --s2:#2CBF93; --s3:#E3A83E; --s4:#6E6A62; --s5:#F2F2EF;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:15px/1.6 -apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-soft); color:var(--text)}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
+*{scrollbar-color:var(--border) transparent; scrollbar-width:thin}
+::-webkit-scrollbar{height:10px;width:10px}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+a{color:inherit; text-decoration:none}
+a.link{text-decoration:underline; text-decoration-color:var(--border);
+  text-underline-offset:3px; transition:text-decoration-color .15s}
+a.link:hover{text-decoration-color:var(--accent)}
+
+.wrap{max-width:860px; margin:0 auto; padding:0 24px}
+
+header{border-bottom:1px solid var(--border); background:var(--bg);
+  position:sticky; top:0; z-index:5}
+.bar{display:flex; align-items:center; gap:20px; height:60px}
+.mark{display:flex; align-items:center; gap:10px; font-weight:650;
+  letter-spacing:-.01em; margin-right:auto}
+.glyph{width:26px; height:26px; border-radius:7px; background:var(--accent);
+  display:grid; place-items:center; flex:none}
+nav{display:flex; gap:20px; font-size:13.5px; color:var(--muted)}
+nav a{padding:4px 0; border-bottom:1.5px solid transparent}
+nav a:hover{color:var(--text)}
+nav a[aria-current=page]{color:var(--text); border-bottom-color:var(--accent)}
+
+.lede{padding:52px 0 8px}
+h1{font-size:clamp(26px,4.2vw,34px); line-height:1.18; letter-spacing:-.024em;
+  margin:0 0 14px; max-width:26ch; text-wrap:balance}
+.sub{color:var(--muted); font-size:14.5px; margin:0; max-width:66ch}
+.sub b{color:var(--text); font-weight:600}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.92em}
+
+section{padding:36px 0 34px; border-top:1px solid var(--border)}
+section:first-of-type{border-top:0; padding-top:22px}
+section > :last-child{margin-bottom:0}
+h2{font-size:17px; letter-spacing:-.012em; margin:0 0 6px}
+.hint{color:var(--muted); font-size:13.5px; margin:0 0 20px; max-width:68ch}
+
+/* ---- run record ------------------------------------------------------- */
+.record{background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:22px 22px 16px; box-shadow:var(--shadow)}
+.strip{display:flex; gap:2px; align-items:flex-end; height:64px}
+.day{flex:1 1 0; min-width:3px; position:relative; height:100%;
+  display:flex; align-items:flex-end}
+.day i{display:block; width:100%; border-radius:2px;
+  height:var(--h); background:var(--c);
+  transform-origin:bottom; animation:grow .5s cubic-bezier(.16,1,.3,1) backwards;
+  animation-delay:calc(var(--i) * 7ms)}
+/* Absence reads as a floor tick, not a full-height column: a day the machine
+   was off should not occupy more ink than a day it worked. */
+.day.norun i{height:3px; background:var(--track); animation:none}
+@keyframes grow{from{transform:scaleY(0)} to{transform:scaleY(1)}}
+@media (prefers-reduced-motion: reduce){.day i{animation:none}}
+.axis{display:flex; justify-content:space-between; color:var(--muted);
+  font-size:12px; margin-top:10px; padding-top:10px;
+  border-top:1px solid var(--border)}
+.legend{display:flex; flex-wrap:wrap; gap:6px 18px; margin:14px 0 0;
+  padding:0; list-style:none; font-size:13px}
+.legend li{display:flex; align-items:center; gap:8px}
+.swatch{width:9px; height:9px; border-radius:2px; flex:none;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.legend b{font-weight:600}
+.legend span{color:var(--muted)}
+
+.note{display:flex; gap:12px; margin:22px 0 0; padding:14px 16px;
+  background:var(--warn-soft); border:1px solid var(--border);
+  border-radius:10px; font-size:13.5px; line-height:1.55}
+.note svg{flex:none; margin-top:2px; color:var(--warn)}
+.note p{margin:0}
+.note strong{font-weight:620}
+
+/* ---- stage bar --------------------------------------------------------- */
+.stack{display:flex; gap:2px; height:16px; margin:0 0 4px}
+.stack span{border-radius:2px; min-width:4px}
+.defs{margin:0; padding:0}
+.defs div{display:grid; grid-template-columns:150px 3.2em 1fr;
+  gap:0 20px; align-items:baseline; padding:11px 0;
+  border-bottom:1px solid var(--border)}
+.defs div:last-child{border-bottom:0}
+.defs dt{display:flex; align-items:center; gap:10px; font-weight:600;
+  font-size:14px}
+.defs dd{margin:0; color:var(--muted); font-size:13.5px}
+.defs .n{font-weight:660; font-size:15px; text-align:right; color:var(--text)}
+
+/* ---- tables ------------------------------------------------------------ */
+.tbl{width:100%; border-collapse:collapse}
+.tbl th{text-align:left; font-size:11.5px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted); font-weight:600;
+  padding:0 12px 9px 0; border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 12px 11px 0; border-bottom:1px solid var(--border);
+  font-size:14px; vertical-align:baseline}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.r{text-align:right; color:var(--muted); font-size:13px;
+  white-space:nowrap; padding-right:0}
+/* The dot alone carries "working". Six rows spelling out the same word is
+   noise; the label appears only when the state is worth a word. */
+.dot{display:inline-flex; align-items:baseline; gap:9px; font-size:13px;
+  color:var(--muted)}
+.dot::before{content:''; width:7px; height:7px; border-radius:99px;
+  background:var(--accent); flex:none; transform:translateY(-1px)}
+.dot.reconnect::before{background:var(--warn)}
+.dot.broken::before{background:var(--fail)}
+
+.chips{display:flex; flex-wrap:wrap; gap:7px; margin:0; padding:0;
+  list-style:none}
+.chips li{border:1px solid var(--border); background:var(--card);
+  border-radius:99px; padding:5px 13px; font-size:13px}
+
+.wont{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:0 36px; margin:0}
+.wont div{padding:13px 0; border-top:1px solid var(--border)}
+.wont dt{font-weight:620; font-size:14px; margin:0 0 3px}
+.wont dd{margin:0; color:var(--muted); font-size:13.5px; line-height:1.55}
+.state{font-style:normal; color:var(--warn); font-weight:600}
+
+footer{border-top:1px solid var(--border); margin-top:40px; padding:24px 0 64px;
+  color:var(--muted); font-size:13px}
+footer p{margin:0 0 8px; max-width:70ch}
+
+@media (max-width:560px){
+  .wrap{padding:0 18px}
+  .bar{height:54px; gap:14px}
+  .lede{padding:36px 0 4px}
+  .record{padding:16px 16px 12px}
+  .strip{height:52px}
+  /* Three columns squeeze the meaning to four words a line; give it the row. */
+  .defs div{grid-template-columns:1fr auto; gap:0 14px}
+  .defs dd:last-child{grid-column:1 / -1; margin-top:3px}
+}
 </style>
-<h1>Kestrel — pipeline status</h1>
-<p class=sub>8:00 AM daily · last log
-2026-09-08 · generated 2026-09-08 08:00</p>
-<div class=cards><div class=card><b>184</b><span>tracked</span></div><div class=card><b>31</b><span>applied</span></div><div class=card><b>133</b><span>wishlist</span></div><div class=card><b>9</b><span>captcha-blocked</span></div><div class=card><b>1</b><span>interviews</span></div></div>
-<h3 style="font-size:14px;margin:0 0 8px">Sources</h3>
-<table><tr><td>LinkedIn (Apify actor)</td><td class="s working">working</td><td>23h ago</td></tr>
-<tr><td>Indeed CA (Apify actor)</td><td class="s working">working</td><td>23h ago</td></tr>
-<tr><td>Wellfound (direct scrape)</td><td class="s working">working</td><td>23h ago</td></tr>
-<tr><td>Greenhouse boards (public API)</td><td class="s working">working</td><td>23h ago</td></tr>
-<tr><td>Lever boards (public API)</td><td class="s working">working</td><td>23h ago</td></tr>
-<tr><td>Company sites / referrals (manual)</td><td class="s working">working</td><td>ongoing</td></tr></table>
-<h3 style="font-size:14px;margin:0 0 8px">ATS adapters</h3>
-<div><span class=chip>Greenhouse</span> <span class=chip>Lever</span> <span class=chip>Workday</span> <span class=chip>Workable</span> <span class=chip>Ashby</span> <span class=chip>Indeed</span> <span class=chip>LinkedIn</span> <span class=chip>Wellfound</span> <span class=chip>Direct sites</span></div>
-<p class=note>Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works.<br>
-<a href="./">Interactive demo</a> · <a href="https://github.com/sanketp9499/kestrel">Source</a></p>
+
+<header>
+  <div class="wrap bar">
+    <a class="mark" href="./">
+      <span class="glyph" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff"
+             stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 14.5 12 4l8 10.5"/><path d="M8.5 20 12 15l3.5 5"/>
+        </svg>
+      </span>
+      Kestrel
+    </a>
+    <nav>
+      <a href="./">Demo</a>
+      <a href="./status.html" aria-current="page">Status</a>
+      <a href="https://github.com/sanketp9499/kestrel">Source</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="lede">
+    <h1>The pipeline fired on 53 of the last 69 days.</h1>
+    <p class="sub"><b>10 of those runs did a full sweep.</b> Last run 2026-09-08, 0.8 min (short exit). Scheduled 8:00 AM daily. Telemetry from the real pipeline, rewritten after
+    every run. Generated <span class="mono">2026-09-09 08:22</span>.</p>
+  </div>
+
+  <section>
+    <h2>Run record</h2>
+    <p class="hint">One column per day. Height is how long the run took, so a
+    run that finished instantly reads as a stub rather than a success.</p>
+    <div class="record">
+      <div class="strip"><span class="day" style="--i:0" title="2026-07-03 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day" style="--i:1" title="2026-07-04 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:2" title="2026-07-05 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day norun" title="2026-07-06 — no run"><i></i></span><span class="day" style="--i:4" title="2026-07-07 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:5" title="2026-07-08 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day norun" title="2026-07-09 — no run"><i></i></span><span class="day" style="--i:7" title="2026-07-10 — short exit, 1.3 min"><i style="--h:26%;--c:var(--warn)"></i></span><span class="day" style="--i:8" title="2026-07-11 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:9" title="2026-07-12 — short exit, 0.4 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:10" title="2026-07-13 — short exit, 0.4 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:11" title="2026-07-14 — short exit, 1.5 min"><i style="--h:26%;--c:var(--warn)"></i></span><span class="day" style="--i:12" title="2026-07-15 — short exit, 0.7 min"><i style="--h:25%;--c:var(--warn)"></i></span><span class="day" style="--i:13" title="2026-07-16 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:14" title="2026-07-17 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day norun" title="2026-07-18 — no run"><i></i></span><span class="day" style="--i:16" title="2026-07-19 — full sweep, 421.8 min"><i style="--h:88%;--c:var(--accent)"></i></span><span class="day" style="--i:17" title="2026-07-20 — short exit, 0.3 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:18" title="2026-07-21 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:19" title="2026-07-22 — short exit, 0.4 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:20" title="2026-07-23 — short exit, 0.3 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:21" title="2026-07-24 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day norun" title="2026-07-25 — no run"><i></i></span><span class="day norun" title="2026-07-26 — no run"><i></i></span><span class="day norun" title="2026-07-27 — no run"><i></i></span><span class="day norun" title="2026-07-28 — no run"><i></i></span><span class="day" style="--i:26" title="2026-07-29 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:27" title="2026-07-30 — short exit, 0.4 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day norun" title="2026-07-31 — no run"><i></i></span><span class="day" style="--i:29" title="2026-08-01 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:30" title="2026-08-02 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day norun" title="2026-08-03 — no run"><i></i></span><span class="day" style="--i:32" title="2026-08-04 — short exit, 0.3 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:33" title="2026-08-05 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:34" title="2026-08-06 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:35" title="2026-08-07 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day norun" title="2026-08-08 — no run"><i></i></span><span class="day" style="--i:37" title="2026-08-09 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day norun" title="2026-08-10 — no run"><i></i></span><span class="day" style="--i:39" title="2026-08-11 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day" style="--i:40" title="2026-08-12 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:41" title="2026-08-13 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day norun" title="2026-08-14 — no run"><i></i></span><span class="day norun" title="2026-08-15 — no run"><i></i></span><span class="day" style="--i:44" title="2026-08-16 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day" style="--i:45" title="2026-08-17 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:46" title="2026-08-18 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day norun" title="2026-08-19 — no run"><i></i></span><span class="day" style="--i:48" title="2026-08-20 — full sweep, 593.9 min"><i style="--h:100%;--c:var(--accent)"></i></span><span class="day" style="--i:49" title="2026-08-21 — short exit, 1 min"><i style="--h:25%;--c:var(--warn)"></i></span><span class="day" style="--i:50" title="2026-08-22 — short exit, 0.5 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:51" title="2026-08-23 — full sweep, 56.3 min"><i style="--h:46%;--c:var(--accent)"></i></span><span class="day" style="--i:52" title="2026-08-24 — full sweep, 15.8 min"><i style="--h:35%;--c:var(--accent)"></i></span><span class="day" style="--i:53" title="2026-08-25 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day" style="--i:54" title="2026-08-26 — short exit, 1 min"><i style="--h:25%;--c:var(--warn)"></i></span><span class="day" style="--i:55" title="2026-08-27 — short exit, 0.7 min"><i style="--h:25%;--c:var(--warn)"></i></span><span class="day" style="--i:56" title="2026-08-28 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day" style="--i:57" title="2026-08-29 — short exit, 1.1 min"><i style="--h:25%;--c:var(--warn)"></i></span><span class="day" style="--i:58" title="2026-08-30 — short exit, 0.6 min"><i style="--h:24%;--c:var(--warn)"></i></span><span class="day" style="--i:59" title="2026-08-31 — full sweep, 39.6 min"><i style="--h:42%;--c:var(--accent)"></i></span><span class="day norun" title="2026-09-01 — no run"><i></i></span><span class="day" style="--i:61" title="2026-09-02 — full sweep, 40.1 min"><i style="--h:42%;--c:var(--accent)"></i></span><span class="day" style="--i:62" title="2026-09-03 — full sweep, 81.4 min"><i style="--h:51%;--c:var(--accent)"></i></span><span class="day" style="--i:63" title="2026-09-04 — full sweep, 16.2 min"><i style="--h:35%;--c:var(--accent)"></i></span><span class="day" style="--i:64" title="2026-09-05 — full sweep, 28.6 min"><i style="--h:39%;--c:var(--accent)"></i></span><span class="day" style="--i:65" title="2026-09-06 — incomplete, started, no finish logged"><i style="--h:42%;--c:var(--stall)"></i></span><span class="day" style="--i:66" title="2026-09-07 — full sweep, 20.1 min"><i style="--h:36%;--c:var(--accent)"></i></span><span class="day" style="--i:67" title="2026-09-08 — short exit, 0.8 min"><i style="--h:25%;--c:var(--warn)"></i></span><span class="day norun" title="2026-09-09 — no run"><i></i></span></div>
+      <div class="axis"><span>69 days ago</span><span>today</span></div>
+      <ul class="legend"><li><span class="swatch" style="background:var(--accent)"></span><b>10 full sweep</b> <span>· sourced, scored and prepared</span></li><li><span class="swatch" style="background:var(--warn)"></span><b>34 short exit</b> <span>· exited before doing the work</span></li><li><span class="swatch" style="background:var(--stall)"></span><b>9 incomplete</b> <span>· started, never logged a finish</span></li><li><span class="swatch" style="background:var(--track)"></span><b>16 no run</b> <span>· the machine was off</span></li></ul>
+      <div class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><p><strong>34 of these runs exited in under 2 minutes.</strong> They returned exit code 0, so any check that only reads the exit code calls them successful. A real sweep takes 40.1 minutes at the median, which is why this page plots run length instead: the short bars are how the silent failure became visible.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where the 184 tracked roles sit</h2>
+    <p class="hint">Every role the pipeline has ever recorded, by stage. Most of
+    them are saved and scored but never applied to, which is the honest shape of
+    a filtered search.</p>
+    <div class="stack"><span style="width:72.28%;background:var(--s1)" title="Wishlist: 133"></span><span style="width:16.85%;background:var(--s2)" title="Applied: 31"></span><span style="width:4.89%;background:var(--s3)" title="CAPTCHA: 9"></span><span style="width:5.43%;background:var(--s4)" title="Closed: 10"></span><span style="width:0.54%;background:var(--s5)" title="Interview: 1"></span></div>
+    <dl class="defs"><div><dt><span class="swatch" style="background:var(--s1)"></span>Wishlist</dt><dd class="n">133</dd><dd>Saved and scored. Not applied to.</dd></div><div><dt><span class="swatch" style="background:var(--s2)"></span>Applied</dt><dd class="n">31</dd><dd>Submitted, with a confirmation captured.</dd></div><div><dt><span class="swatch" style="background:var(--s3)"></span>CAPTCHA</dt><dd class="n">9</dd><dd>Prepared, then handed to a human to finish.</dd></div><div><dt><span class="swatch" style="background:var(--s4)"></span>Closed</dt><dd class="n">10</dd><dd>Rejected, or the posting came down.</dd></div><div><dt><span class="swatch" style="background:var(--s5)"></span>Interview</dt><dd class="n">1</dd><dd>A reply asking to talk.</dd></div></dl>
+  </section>
+
+  <section>
+    <h2>Sources</h2>
+    <p class="hint">Where postings come from. Six survived; the boards that were
+    tried and dropped are documented, with their numbers, in the README.</p>
+    <table class="tbl">
+      <thead><tr><th>Source</th><th class="r">Last sync</th></tr></thead>
+      <tbody><tr><td><span class="dot working">LinkedIn (Apify actor)</span></td><td class="r">1d ago</td></tr><tr><td><span class="dot working">Indeed CA (Apify actor)</span></td><td class="r">1d ago</td></tr><tr><td><span class="dot working">Wellfound (direct scrape)</span></td><td class="r">1d ago</td></tr><tr><td><span class="dot working">Greenhouse boards (public API)</span></td><td class="r">1d ago</td></tr><tr><td><span class="dot working">Lever boards (public API)</span></td><td class="r">1d ago</td></tr><tr><td><span class="dot working">Company sites / referrals (manual)</span></td><td class="r">ongoing</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>ATS adapters</h2>
+    <p class="hint">One Playwright adapter per application system, over a shared
+    base that handles resume and cover-letter upload.</p>
+    <ul class="chips"><li>Greenhouse</li><li>Lever</li><li>Workday</li><li>Workable</li><li>Ashby</li><li>Indeed</li><li>LinkedIn</li><li>Wellfound</li><li>Direct sites</li></ul>
+  </section>
+
+  <section>
+    <h2>What it deliberately won't do</h2>
+    <p class="hint">Limits chosen on purpose, not gaps left open.</p>
+    <dl class="wont"><div><dt>Solve CAPTCHAs</dt><dd>Detected and flagged, never solved. The folder is marked and a human finishes the application.</dd></div><div><dt>Answer EEO questions</dt><dd>Left blank on purpose. Guessing on someone's behalf about race, gender, disability or veteran status is not a bot's call.</dd></div><div><dt>Send cold emails</dt><dd>Drafted only. A cold email goes to a named human and cannot be recalled, so a person reviews and sends it.</dd></div><div><dt>Invent experience</dt><dd>Screening answers draw only on the profile's experience notes. No relevant fact means the question is flagged, not answered.</dd></div></dl>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works.</p>
+  <p><a class="link" href="./">Interactive demo</a> ·
+     <a class="link" href="https://github.com/sanketp9499/kestrel">Source on GitHub</a> ·
+     <a class="link" href="https://sanketp.webflow.io">Sanket Pawar</a></p>
+</footer>
+</html>

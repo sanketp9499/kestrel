@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-08T08:00:44",
+  "generatedAt": "2026-09-09T08:22:35",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -22,7 +22,7 @@
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "23h ago",
+      "synced": "1d ago",
       "health": "working"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "23h ago",
+      "synced": "1d ago",
       "health": "working"
     },
     {
@@ -38,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "23h ago",
+      "synced": "1d ago",
       "health": "working"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "23h ago",
+      "synced": "1d ago",
       "health": "working"
     },
     {
@@ -54,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "23h ago",
+      "synced": "1d ago",
       "health": "working"
     },
     {
@@ -67,6 +67,41 @@
     }
   ],
   "automation": {
+    "safeMode": true,
+    "safeModeNote": "Sanket is cross-checking the tailored documents before anything goes out (set 2026-09-08)",
+    "safeModeSince": "2026-09-08T23:06",
+    "pendingVerify": [
+      {
+        "co": "AltaML",
+        "role": "Product Designer",
+        "at": "2026-09-03"
+      },
+      {
+        "co": "Fulfillment IQ",
+        "role": "UI-UX Designer",
+        "at": "2026-08-23"
+      },
+      {
+        "co": "Harvey",
+        "role": "Product Designer, Design Systems",
+        "at": "2026-09-02"
+      },
+      {
+        "co": "Synechron",
+        "role": "UX Designer",
+        "at": "2026-09-02"
+      },
+      {
+        "co": "Vitalist Inc. (VITA - TSXV)",
+        "role": "Web Designer (UX-UI Focus)",
+        "at": "2026-09-02"
+      },
+      {
+        "co": "isgSearch",
+        "role": "UX Designer",
+        "at": "2026-09-07"
+      }
+    ],
     "scheduledTime": "8:00 AM daily",
     "lastLogDate": "2026-09-08",
     "daysSinceApplied": 16,
@@ -125,6 +160,503 @@
       "Apply (Playwright)",
       "Monitor (Gmail + IMAP)"
     ]
+  },
+  "history": {
+    "days": [
+      {
+        "date": "2026-07-03",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 784366
+      },
+      {
+        "date": "2026-07-04",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 1606
+      },
+      {
+        "date": "2026-07-05",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 802
+      },
+      {
+        "date": "2026-07-06",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-07-07",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 1934
+      },
+      {
+        "date": "2026-07-08",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 1496
+      },
+      {
+        "date": "2026-07-09",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-07-10",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 1.3,
+        "bytes": 3128
+      },
+      {
+        "date": "2026-07-11",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 1870
+      },
+      {
+        "date": "2026-07-12",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.4,
+        "bytes": 1548
+      },
+      {
+        "date": "2026-07-13",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.4,
+        "bytes": 1550
+      },
+      {
+        "date": "2026-07-14",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 1.5,
+        "bytes": 3286
+      },
+      {
+        "date": "2026-07-15",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.7,
+        "bytes": 1546
+      },
+      {
+        "date": "2026-07-16",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 1572
+      },
+      {
+        "date": "2026-07-17",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 2274
+      },
+      {
+        "date": "2026-07-18",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-07-19",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 421.8,
+        "bytes": 4868
+      },
+      {
+        "date": "2026-07-20",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.3,
+        "bytes": 3124
+      },
+      {
+        "date": "2026-07-21",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 42292
+      },
+      {
+        "date": "2026-07-22",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.4,
+        "bytes": 2726
+      },
+      {
+        "date": "2026-07-23",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.3,
+        "bytes": 3192
+      },
+      {
+        "date": "2026-07-24",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 3322
+      },
+      {
+        "date": "2026-07-25",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-07-26",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-07-27",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-07-28",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-07-29",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 3474
+      },
+      {
+        "date": "2026-07-30",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.4,
+        "bytes": 2880
+      },
+      {
+        "date": "2026-07-31",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-08-01",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 3316
+      },
+      {
+        "date": "2026-08-02",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 4468
+      },
+      {
+        "date": "2026-08-03",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-08-04",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.3,
+        "bytes": 3752
+      },
+      {
+        "date": "2026-08-05",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 4740
+      },
+      {
+        "date": "2026-08-06",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 4688
+      },
+      {
+        "date": "2026-08-07",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 2072
+      },
+      {
+        "date": "2026-08-08",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-08-09",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 4906
+      },
+      {
+        "date": "2026-08-10",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-08-11",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 2072
+      },
+      {
+        "date": "2026-08-12",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 4982
+      },
+      {
+        "date": "2026-08-13",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 4600
+      },
+      {
+        "date": "2026-08-14",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-08-15",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-08-16",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 2072
+      },
+      {
+        "date": "2026-08-17",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 3592
+      },
+      {
+        "date": "2026-08-18",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 802
+      },
+      {
+        "date": "2026-08-19",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-08-20",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 593.9,
+        "bytes": 4180
+      },
+      {
+        "date": "2026-08-21",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 1.0,
+        "bytes": 4766
+      },
+      {
+        "date": "2026-08-22",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.5,
+        "bytes": 3686
+      },
+      {
+        "date": "2026-08-23",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 56.3,
+        "bytes": 20620
+      },
+      {
+        "date": "2026-08-24",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 15.8,
+        "bytes": 6533
+      },
+      {
+        "date": "2026-08-25",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 802
+      },
+      {
+        "date": "2026-08-26",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 1.0,
+        "bytes": 4332
+      },
+      {
+        "date": "2026-08-27",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.7,
+        "bytes": 3834
+      },
+      {
+        "date": "2026-08-28",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 1634
+      },
+      {
+        "date": "2026-08-29",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 1.1,
+        "bytes": 6484
+      },
+      {
+        "date": "2026-08-30",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.6,
+        "bytes": 3438
+      },
+      {
+        "date": "2026-08-31",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 39.6,
+        "bytes": 14309
+      },
+      {
+        "date": "2026-09-01",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      },
+      {
+        "date": "2026-09-02",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 40.1,
+        "bytes": 23186
+      },
+      {
+        "date": "2026-09-03",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 81.4,
+        "bytes": 10360
+      },
+      {
+        "date": "2026-09-04",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 16.2,
+        "bytes": 13623
+      },
+      {
+        "date": "2026-09-05",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 28.6,
+        "bytes": 15330
+      },
+      {
+        "date": "2026-09-06",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 11435
+      },
+      {
+        "date": "2026-09-07",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 20.1,
+        "bytes": 8685
+      },
+      {
+        "date": "2026-09-08",
+        "verdict": "noop",
+        "exit": 0,
+        "minutes": 0.8,
+        "bytes": 12192
+      },
+      {
+        "date": "2026-09-09",
+        "verdict": "norun",
+        "exit": null,
+        "minutes": null,
+        "bytes": 0
+      }
+    ],
+    "firstRun": "2026-07-03",
+    "lastRun": "2026-09-08",
+    "ranCount": 53,
+    "workedCount": 10,
+    "windowDays": 69,
+    "cleanRate": 18.9,
+    "medianMinutes": 40.1,
+    "longestRunMinutes": 593.9,
+    "streak": 0,
+    "noopThresholdMinutes": 2.0
   },
   "note": "Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works."
 }
