@@ -89,6 +89,13 @@ def scan_logs(scripts_dir=HERE):
         done = COMPLETE_RE.search(text)
         started = bool(START_RE.search(text)) or "STARTING PIPELINE" in text
         minutes = _minutes_spanned(text)
+        if not (done or started):
+            # A log with entries but no STARTING banner means something else
+            # wrote to the day's file - an ad-hoc script, or the test suite,
+            # which shares this filename. The scheduler never ran, so this is
+            # not a run at all. Counting it as an incomplete run overstates the
+            # record in the one direction this page must never overstate.
+            continue
         if done:
             code = int(done.group(1))
             if code != 0:
@@ -97,11 +104,7 @@ def scan_logs(scripts_dir=HERE):
                 verdict = "noop"
             else:
                 verdict = "clean"
-        elif started:
-            code, verdict = None, "partial"
         else:
-            # A log with entries but no pipeline banner: something wrote to the
-            # day's file (an ad-hoc script) without the scheduler ever running.
             code, verdict = None, "partial"
         out[date] = {
             "date": date,

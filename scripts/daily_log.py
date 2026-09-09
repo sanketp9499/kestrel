@@ -6,18 +6,29 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-WORKSPACE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WORKSPACE = r"E:\Job Hunter 2026\Job Hunter"
 if not os.path.exists(WORKSPACE):
     WORKSPACE = "/sessions/eager-pensive-meitner/mnt/Job Hunter"
 SCRIPTS      = os.path.join(WORKSPACE, "Scripts")
-PROFILE_PATH = os.path.join(SCRIPTS, "profile.json")
+PROFILE_PATH = os.path.join(SCRIPTS, "sanket_profile.json")
 
 _log_file = None
 
 def init_log():
+    """Pick today's log file, or a throwaway one when running under pytest.
+
+    The daily log is the pipeline's run record: run_history.py reads these files
+    to report, publicly, which days the machine actually worked. A test run that
+    appends to the same file writes fixture traffic into that record, so the
+    suite gets its own file that nothing reads.
+    """
     global _log_file
     today = datetime.date.today().isoformat()
-    _log_file = os.path.join(SCRIPTS, "daily_log_{}.txt".format(today))
+    if os.environ.get("KESTREL_TEST_LOG") or "PYTEST_CURRENT_TEST" in os.environ:
+        name = "test_log_{}.txt".format(today)
+    else:
+        name = "daily_log_{}.txt".format(today)
+    _log_file = os.path.join(SCRIPTS, name)
 
 def log(msg):
     if _log_file is None:
