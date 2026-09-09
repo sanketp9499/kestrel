@@ -10,19 +10,86 @@
 <x-dc>
 <helmet>
 <style>
-  :root { --bg:#FAF9F6; --card:#FFFFFF; --text:#0A0A0A; --muted:#5B6270; --border:#E7E4DD; --hover:#F3F1EB; --accent:#0F9D74; --accent-soft:#E7F5F0; --sheet:#FFFFFF; --sheetline:#E2DFD8; }
+  :root { --bg:#FAF9F6; --card:#FFFFFF; --text:#0A0A0A; --muted:#5B6270; --border:#E7E4DD; --hover:#F3F1EB; --accent:#FA503D; --accent-hover:#E0412E; --accent-soft:#FDEDE9; --accent-ink:#B8321F; --ok:#1F7A55; --ok-soft:#E4F1EA; --warn:#8A5A00; --crit:#8C2F22; --border-strong:#D6D2C6; --sheet:#FFFFFF; --sheetline:#E2DFD8; }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#141416; --card:#1E1E21; --text:#F2F2EF; --muted:#9AA1AC; --border:#2C2C31; --hover:#26262B; --accent-soft:#12352B; --sheet:#232326; --sheetline:#38383D; }
+    :root { --bg:#141416; --card:#1E1E21; --text:#F2F2EF; --muted:#9AA1AC; --border:#2C2C31; --hover:#26262B; --accent:#FA503D; --accent-hover:#FF6A57; --accent-soft:#3A1A15; --accent-ink:#FF9280; --ok:#4FBF8B; --ok-soft:#123025; --warn:#E0A83C; --crit:#F08872; --border-strong:#3B3B42; --sheet:#232326; --sheetline:#38383D; }
   }
   * { box-sizing: border-box; }
   body { margin:0; background: var(--bg); }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { color: var(--accent); text-decoration: underline; }
+  a { color:var(--accent-ink); text-decoration: none; }
+  a:hover { color:var(--accent-ink); text-decoration: underline; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   button { font-family: inherit; }
   input, textarea, select { font-family: inherit; color: var(--text); }
   @keyframes panelIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+
+<style>
+/* Every element below is inline-styled, so these overrides are structural and
+   have to win with !important. Breakpoints follow design/jobhunt-mockup.html. */
+@media (max-width:1000px){
+  .sc-host > div > main > div{padding:22px 20px 40px!important;}
+}
+@media (max-width:768px){
+  /* The sidebar becomes a bottom tab bar. A 225px rail on a 390px screen left
+     165px of content, which is a desktop layout crushed, not an app. */
+  .sc-host > div{flex-direction:column!important; height:100dvh!important;}
+  .sc-host > div > main{order:1; min-height:0; overflow-y:auto;
+    -webkit-overflow-scrolling:touch;}
+  .sc-host > div > main > div{padding:16px 14px 24px!important;}
+
+  .sc-host > div > nav{
+    order:2; width:100%!important; height:auto!important; flex:none!important;
+    flex-direction:row!important; align-items:stretch!important;
+    border-right:0!important; border-top:1px solid var(--border)!important;
+    padding:4px 6px calc(4px + env(safe-area-inset-bottom,0px))!important;
+    overflow-x:auto; scrollbar-width:none; gap:2px;
+  }
+  .sc-host > div > nav::-webkit-scrollbar{display:none;}
+  /* brand block and the account/friend-view stack are desktop furniture */
+  .sc-host > div > nav > div:first-child,
+  .sc-host > div > nav > div[style*="margin-top:auto"],
+  .sc-host > div > nav > div[style*="margin-top: auto"]{display:none!important;}
+  .sc-host > div > nav > *{margin:0!important;}
+  /* the surviving child is the button stack; it is a column on desktop */
+  .sc-host > div > nav > div{
+    display:flex!important; flex-direction:row!important; flex:1 1 auto!important;
+    gap:2px!important; width:100%!important;
+  }
+
+  .sc-host > div > nav button,
+  .sc-host > div > nav a{
+    flex-direction:column!important; gap:3px!important;
+    padding:7px 4px 5px!important; font-size:10px!important;
+    line-height:1.15!important; min-width:60px; border-radius:10px!important;
+    box-shadow:none!important; text-align:center;
+  }
+  .sc-host > div > nav svg{width:19px!important; height:19px!important;}
+  /* the count badge would push the label off a 60px tab */
+  .sc-host > div > nav button > span[style*="border-radius:999px"],
+  .sc-host > div > nav button > span[style*="border-radius: 999px"]{
+    position:absolute; transform:translate(14px,-10px); font-size:9px!important;
+    padding:1px 5px!important;
+  }
+  .sc-host > div > nav button{position:relative;}
+
+  /* Fixed multi-column grids are inline-styled, so they held their desktop
+     column counts and pushed the panels 40px past the viewport. Collapse them,
+     but leave auto-fit grids alone: those already reflow to 2-up, which is what
+     the mockup wants for the KPI row. */
+  .sc-host > div > main div[style*="grid-template-columns"]:not([style*="auto-fit"]):not([style*="auto-fill"]){
+    grid-template-columns:1fr!important;
+  }
+  /* A grid item defaults to min-width:auto, so one wide row inside a panel
+     stretches the whole track past the viewport even after the collapse. */
+  .sc-host > div > main div[style*="grid-template-columns"] > *{
+    min-width:0!important;
+  }
+  .sc-host > div > main div[style*="grid-template-columns"] *{
+    max-width:100%;
+  }
+}
 </style>
 </helmet>
 <div style="display:flex; height:100vh; overflow:hidden; background:var(--bg); color:var(--text); font-family:-apple-system, 'Segoe UI', Roboto, sans-serif; font-size:14px;">
@@ -30,7 +97,7 @@
   <!-- Sidebar -->
   <nav style="width:225px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card); display:flex; flex-direction:column; padding:20px 12px 16px;">
     <div style="display:flex; align-items:center; gap:10px; padding:0 10px 20px;">
-      <div style="width:28px; height:28px; border-radius:8px; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">J</div>
+      <div style="width:28px; height:28px; border-radius:8px; background:var(--accent); color:#0A0A0A; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">J</div>
       <div>
         <div style="font-weight:700; font-size:14px; line-height:1.1;">Kestrel</div>
         <div style="font-size:11px; color:var(--muted);">Pipeline demo</div>
@@ -88,7 +155,7 @@
         </div>
         <div style="background:var(--card); border:1px solid var(--accent); border-radius:10px; padding:18px 20px; margin-bottom:18px; display:flex; align-items:center; gap:16px; justify-content:space-between; flex-wrap:wrap;">
           <div style="display:flex; align-items:center; gap:14px;">
-            <div style="width:40px; height:40px; border-radius:10px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <div style="width:40px; height:40px; border-radius:10px; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
             <div>
@@ -125,7 +192,7 @@
         </div>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:18px;">
           <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="6">
-            <button onClick="{{ k.go }}" style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; text-align:left; cursor:pointer; color:var(--text);" style-hover="border-color:var(--accent); box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <button onClick="{{ k.go }}" style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; text-align:left; cursor:pointer; color:var(--text);" style-hover="border-color:var(--accent-ink); box-shadow:0 2px 10px rgba(0,0,0,0.06);">
               <span style="display:block; font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">{{ k.label }}</span>
               <span style="display:block; font-size:28px; font-weight:700; letter-spacing:-1px; margin:4px 0 2px;">{{ k.value }}</span>
               <span style="{{ k.trendStyle }}">{{ k.trend }}</span>
@@ -276,7 +343,7 @@
                   </div>
                   <span style="font-size:11px; font-weight:600; letter-spacing:1px; color:var(--muted); text-transform:uppercase;">{{ col.count }} jobs</span>
                 </div>
-                <button disabled="{{ friend }}" aria-label="Add job to {{ col.name }}" style="width:100%; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:7px 0; color:var(--muted); cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center;" style-hover="color:var(--accent); border-color:var(--accent);">
+                <button disabled="{{ friend }}" aria-label="Add job to {{ col.name }}" style="width:100%; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:7px 0; color:var(--muted); cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center;" style-hover="color:var(--accent-ink); border-color:var(--accent-ink);">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -400,7 +467,7 @@
             <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
               Master Templates
-              <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-soft); border-radius:999px; padding:2px 10px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Source of truth — never edited per job</span>
+              <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--accent-ink); background:var(--accent-soft); border-radius:999px; padding:2px 10px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Source of truth — never edited per job</span>
             </div>
             <button onClick="{{ goStudio }}" disabled="{{ friend }}" style="{{ ghostBtn }}">Edit in Resume Studio</button>
           </div>
@@ -627,7 +694,7 @@
         <sc-if value="{{ isOtherDoc }}" hint-placeholder-val="{{ false }}">
           <div style="display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:16px; align-items:start;">
             <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px 18px;">
-              <div style="display:flex; align-items:center; gap:7px; background:var(--accent-soft); color:var(--accent); border-radius:8px; padding:8px 12px; font-size:12px; font-weight:700; margin-bottom:14px;">
+              <div style="display:flex; align-items:center; gap:7px; background:var(--accent-soft); color:var(--accent-ink); border-radius:8px; padding:8px 12px; font-size:12px; font-weight:700; margin-bottom:14px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 Formatting inherits the resume master's template
               </div>
@@ -673,7 +740,7 @@
                       <div style="background:var(--hover); border:1px solid var(--border); border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.55; margin-top:12px;">{{ liMsg }}</div>
                       <div style="{{ liCountStyle }}">{{ liChars }} / 300 characters</div>
                       <div style="display:flex; gap:8px; margin-top:14px;">
-                        <span style="background:var(--accent); color:#fff; border-radius:999px; padding:6px 18px; font-size:13px; font-weight:700;">Connect</span>
+                        <span style="background:var(--accent); color:#0A0A0A; border-radius:999px; padding:6px 18px; font-size:13px; font-weight:700;">Connect</span>
                         <span style="border:1px solid var(--border); color:var(--muted); border-radius:999px; padding:6px 18px; font-size:13px; font-weight:700;">Ignore</span>
                       </div>
                     </div>
@@ -703,7 +770,7 @@
           <div style="font-weight:700; font-size:14px; margin-bottom:12px;">Target roles</div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
-              <span style="background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:4px 12px; font-size:12.5px; font-weight:600; white-space:nowrap;">{{ r.name }}</span>
+              <span style="background:var(--accent-soft); color:var(--accent-ink); border:1px solid var(--accent); border-radius:999px; padding:4px 12px; font-size:12.5px; font-weight:600; white-space:nowrap;">{{ r.name }}</span>
             </sc-for>
           </div>
         </div>
@@ -766,7 +833,7 @@
       <div style="padding:0 22px 18px;">
         <div style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px;">Responsibilities</div>
         <sc-for list="{{ selResp }}" as="r" hint-placeholder-count="3">
-          <div style="display:flex; gap:9px; padding:3px 0; font-size:13px; line-height:1.5;"><span style="color:var(--accent); font-weight:700;">·</span><span>{{ r.t }}</span></div>
+          <div style="display:flex; gap:9px; padding:3px 0; font-size:13px; line-height:1.5;"><span style="color:var(--accent-ink); font-weight:700;">·</span><span>{{ r.t }}</span></div>
         </sc-for>
       </div>
       <div style="padding:0 22px 18px;">
@@ -789,7 +856,7 @@
       <div style="padding:0 22px 18px;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
           <span style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px;">Documents ({{ selDocCount }})</span>
-          <button onClick="{{ goDocsFromPanel }}" style="border:none; background:none; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; padding:0;">View all</button>
+          <button onClick="{{ goDocsFromPanel }}" style="border:none; background:none; color:var(--accent-ink); font-size:12px; font-weight:700; cursor:pointer; padding:0;">View all</button>
         </div>
         <sc-if value="{{ selNoDocs }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12.5px; color:var(--muted); border:1px dashed var(--border); border-radius:8px; padding:10px 12px;">Nothing tailored yet — use "Tailor for this job" below.</div>
@@ -817,11 +884,11 @@
         </div>
         <div style="border:1.5px solid var(--accent); border-radius:10px; overflow:hidden;">
           <div style="background:var(--accent-soft); padding:10px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <span style="display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px;">
+            <span style="display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:var(--accent-ink); text-transform:uppercase; letter-spacing:0.5px;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
               Manual Fallback Kit
             </span>
-            <span style="font-size:11px; color:var(--accent); font-weight:600;">for CAPTCHA-blocked or unsupported forms</span>
+            <span style="font-size:11px; color:var(--accent-ink); font-weight:600;">for CAPTCHA-blocked or unsupported forms</span>
           </div>
           <div style="padding:12px 14px; display:flex; flex-direction:column; gap:12px;">
             <button disabled="{{ friend }}" style="{{ openAppBtn }}">Open application on {{ selSource }}
@@ -896,7 +963,7 @@
       </div>
       <div style="display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:16px; align-items:start;">
         <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px 18px;">
-          <div style="display:flex; align-items:center; gap:7px; background:var(--accent-soft); color:var(--accent); border-radius:8px; padding:8px 12px; font-size:12px; font-weight:700; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:7px; background:var(--accent-soft); color:var(--accent-ink); border-radius:8px; padding:8px 12px; font-size:12px; font-weight:700; margin-bottom:14px;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             Formatting locked to master — text fields only
           </div>
@@ -1015,10 +1082,10 @@ class Component extends DCLogic {
     // 'interview' was missing until 2026-09-06, when the first one appeared. Every lookup
     // here is unguarded, so one interview job crashed the whole render with
     // "Cannot read properties of undefined (reading '0')". Any new status needs an entry.
-    const PILL = { applied: ['#16A34A', 'Applied'], captcha: ['#D97706', 'CAPTCHA Pending'], not: ['#64748B', 'Wishlist'], closed: ['#DC2626', 'Rejected'], interview: ['#7C3AED', 'Interview'] };
-    const URG = { hot: ['#DC2626', 'Hot'], warm: ['#D97706', 'Warm'], fresh: ['#16A34A', 'Fresh'] };
+    const PILL = { applied: ['#1F7A55', 'Applied'], captcha: ['#D97706', 'CAPTCHA Pending'], not: ['#64748B', 'Wishlist'], closed: ['#DC2626', 'Rejected'], interview: ['#7C3AED', 'Interview'] };
+    const URG = { hot: ['#DC2626', 'Hot'], warm: ['#D97706', 'Warm'], fresh: ['#1F7A55', 'Fresh'] };
     // Single source of truth for card signal color: same value drives pill AND stripe
-    const signal = (j) => j.status === 'interview' ? ['#7C3AED', 'Interview'] : j.status === 'captcha' ? ['#D97706', 'CAPTCHA'] : j.urg ? URG[j.urg] : j.status === 'applied' ? ['#16A34A', null] : j.status === 'closed' ? ['#DC2626', null] : ['#94A3B8', null];
+    const signal = (j) => j.status === 'interview' ? ['#7C3AED', 'Interview'] : j.status === 'captcha' ? ['#D97706', 'CAPTCHA'] : j.urg ? URG[j.urg] : j.status === 'applied' ? ['#1F7A55', null] : j.status === 'closed' ? ['#DC2626', null] : ['#94A3B8', null];
 
     const enrich = (j) => ({ ...j,
       initials: initials(j.co), avStyle: av(j.co, 30), avStyleSm: av(j.co, 22),
@@ -1041,7 +1108,7 @@ class Component extends DCLogic {
     const chips = [['all', 'All'], ['not', 'Wishlist'], ['captcha', 'CAPTCHA'], ['applied', 'Applied'], ['interview', 'Interview'], ['closed', 'Rejected']].map(([id, label]) => {
       const on = S.filter === id;
       return { label, count: counts[id], click: set({ filter: id }),
-        style: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent)' : 'var(--card)', color: on ? '#fff' : 'var(--text)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
+        style: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent)' : 'var(--card)', color: on ? '#0A0A0A' : 'var(--text)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
         countStyle: { background: on ? 'rgba(255,255,255,0.25)' : 'var(--hover)', borderRadius: 999, padding: '0 7px', fontSize: 11, fontWeight: 700 } };
     });
     const COLS = [
@@ -1054,7 +1121,7 @@ class Component extends DCLogic {
     const cols = COLS.map(([id, name, fn, icon]) => { const jobs = searched.filter(fn); return { name, count: jobs.length, jobs, icon }; });
 
     const nav = (id) => ({ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', border: 'none', borderRadius: 8, padding: '9px 10px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', background: page === id ? 'var(--accent-soft)' : 'transparent', color: page === id ? 'var(--accent)' : 'var(--text)', boxShadow: page === id ? 'inset 3px 0 0 var(--accent)' : 'none' });
-    const btn = (primary) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, border: primary ? 'none' : '1px solid var(--border)', background: primary ? 'var(--accent)' : 'var(--card)', color: primary ? '#fff' : 'var(--text)', borderRadius: 8, padding: primary ? '8px 15px' : '7px 12px', fontSize: 13, fontWeight: 600, cursor: friend ? 'not-allowed' : 'pointer', opacity: friend && primary ? 0.5 : 1, whiteSpace: 'nowrap' });
+    const btn = (primary) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, border: primary ? 'none' : '1px solid var(--border)', background: primary ? 'var(--accent)' : 'var(--card)', color: primary ? '#0A0A0A' : 'var(--text)', borderRadius: 8, padding: primary ? '8px 15px' : '7px 12px', fontSize: 13, fontWeight: 600, cursor: friend ? 'not-allowed' : 'pointer', opacity: friend && primary ? 0.5 : 1, whiteSpace: 'nowrap' });
 
     // ---- Resume data (formatting-locked masters) ----
     const RD = this.resumeDefaults();
@@ -1089,7 +1156,7 @@ class Component extends DCLogic {
     ];
     const pending = SUGG.filter(g => !S.revApplied[g.id] && !S.revIgnored[g.id]);
     const score = 74 + SUGG.reduce((a, g) => a + (S.revApplied[g.id] ? g.pts : 0), 0);
-    const TAGDOT = { 'ATS Optimize': '#2D7DD2', 'Stay Consistent': '#16A34A', 'Missing Info': '#D97706', 'Be Concise': '#6D4FC4', 'High Impact': '#DC2626', 'Be Specific': '#C99A2E' };
+    const TAGDOT = { 'ATS Optimize': '#2D7DD2', 'Stay Consistent': '#1F7A55', 'Missing Info': '#D97706', 'Be Concise': '#6D4FC4', 'High Impact': '#DC2626', 'Be Specific': '#C99A2E' };
     const suggestions = pending.map(g => { const on = !!S.revChecked[g.id]; return { ...g, checked: on,
       toggle: () => this.setState(s => ({ revChecked: { ...s.revChecked, [g.id]: !s.revChecked[g.id] } })),
       cardStyle: { background: 'var(--card)', border: '1.5px solid ' + (on ? 'var(--accent)' : 'var(--border)'), borderRadius: 10, padding: '13px 14px' },
@@ -1139,7 +1206,7 @@ class Component extends DCLogic {
 
     // ---- Studio doc tabs ----
     const DOCS = [['resume', 'Master Resume'], ['cover', 'Cover Letter'], ['email', 'Cold Email'], ['linkedin', 'LinkedIn Message']];
-    const tabBtn = (on) => ({ display: 'inline-flex', alignItems: 'center', gap: 6, border: '1.5px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent-soft)' : 'var(--card)', color: on ? 'var(--accent)' : 'var(--text)', borderRadius: 8, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' });
+    const tabBtn = (on) => ({ display: 'inline-flex', alignItems: 'center', gap: 6, border: '1.5px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent-soft)' : 'var(--card)', color: on ? 'var(--accent-ink)' : 'var(--text)', borderRadius: 8, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' });
     const studioDocs = DOCS.map(([id, label]) => ({ label, click: set({ studioDoc: id }), style: tabBtn(S.studioDoc === id) }));
     const isResumeDoc = S.studioDoc === 'resume';
     const OFIELDS = { cover: [['coverOpening', 'Opening hook', 3], ['coverBody', 'Body', 5], ['coverAsk', 'The ask (closing)', 3]], email: [['emailSubject', 'Subject line', 1], ['emailBody', 'Body', 10]], linkedin: [['liMsg', 'Message (300 char limit)', 4]] };
@@ -1153,7 +1220,7 @@ class Component extends DCLogic {
     // ---- Discover ----
     const srcBadge = (id, size) => ({ width: size, height: size, borderRadius: '50%', background: (SRC[id] || {}).color || '#64748B', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.5, fontWeight: 800, flexShrink: 0, fontFamily: "-apple-system,'Segoe UI',Roboto,sans-serif" });
     const TRUST = {
-      verified: ['#16A34A', 'Verified', 'M20 6L9 17l-4-4'],
+      verified: ['#1F7A55', 'Verified', 'M20 6L9 17l-4-4'],
       caution: ['#D97706', 'Caution', 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01'],
       unverified: ['#DC2626', 'Unverified', 'M12 8v4 M12 16h.01 M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z']
     };
@@ -1163,10 +1230,10 @@ class Component extends DCLogic {
     const srcChips = [['all', 'All sources'], ['linkedin', 'LinkedIn'], ['indeed', 'Indeed'], ['glassdoor', 'Glassdoor'], ['wellfound', 'Wellfound'], ['reddit', 'Reddit'], ['substack', 'Substack'], ['x', 'X'], ['site', 'Company sites']].map(([id, label]) => {
       const on = S.discoverFilter === id;
       return { label, count: sCounts[id] || 0, click: set({ discoverFilter: id }),
-        style: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent)' : 'var(--card)', color: on ? '#fff' : 'var(--text)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
+        style: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent)' : 'var(--card)', color: on ? '#0A0A0A' : 'var(--text)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
         countStyle: { background: on ? 'rgba(255,255,255,0.25)' : 'var(--hover)', borderRadius: 999, padding: '0 7px', fontSize: 11, fontWeight: 700 } };
     });
-    const DONE_L = { wish: ['Added to Wishlist ✓', '#16A34A'], skip: ['Skipped', '#94A3B8'], snooze: ['Snoozed — back tomorrow', '#D97706'], report: ['Reported as scam', '#DC2626'] };
+    const DONE_L = { wish: ['Added to Wishlist ✓', '#1F7A55'], skip: ['Skipped', '#94A3B8'], snooze: ['Snoozed — back tomorrow', '#D97706'], report: ['Reported as scam', '#DC2626'] };
     const findsF = findsAll.filter(f => S.discoverFilter === 'all' || f.source === S.discoverFilter);
     const finds = findsF.map(f => { const t = TRUST[f.trust]; const st = S.triaged[f.id]; const tri = (v) => () => this.setState(s => ({ triaged: { ...s.triaged, [f.id]: v } }));
       return { ...f, initials: initials(f.co), avStyle: av(f.co, 36),
@@ -1178,7 +1245,7 @@ class Component extends DCLogic {
         pending: !st, pendingSafe: !st && f.trust !== 'unverified', pendingRisky: !st && f.trust === 'unverified',
         addWish: tri('wish'), skip: tri('skip'), snooze: tri('snooze'), report: tri('report'),
         doneLabel: st ? DONE_L[st][0] : null, doneStyle: st ? { fontSize: 11.5, fontWeight: 700, color: DONE_L[st][1], whiteSpace: 'nowrap' } : null }; });
-    const HEALTH = { working: ['Working', '#16A34A'], reconnect: ['Reconnect', '#D97706'], broken: ['Broken', '#DC2626'] };
+    const HEALTH = { working: ['Working', '#1F7A55'], reconnect: ['Reconnect', '#D97706'], broken: ['Broken', '#DC2626'] };
     const sources = this.sourcesData().map(s => ({ ...s, badge: srcBadge(s.id, 24),
       healthStyle: { ...pill(HEALTH[s.health][1]), fontSize: 10.5, padding: '2px 9px' }, health: HEALTH[s.health][0], needsFix: s.health !== 'working' }));
     const discoverNew = findsAll.filter(f => !S.triaged[f.id]).length;
@@ -1211,7 +1278,7 @@ class Component extends DCLogic {
     const docChips = [['all', 'All'], ['Resume', 'Resumes'], ['Cover Letter', 'Cover Letters'], ['Cold Email', 'Cold Emails'], ['LinkedIn', 'LinkedIn']].map(([id, label]) => {
       const on = S.docFilter === id;
       return { label, count: dCounts[id] || 0, click: set({ docFilter: id }),
-        style: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent)' : 'var(--card)', color: on ? '#fff' : 'var(--text)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
+        style: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border)'), background: on ? 'var(--accent)' : 'var(--card)', color: on ? '#0A0A0A' : 'var(--text)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
         countStyle: { background: on ? 'rgba(255,255,255,0.25)' : 'var(--hover)', borderRadius: 999, padding: '0 7px', fontSize: 11, fontWeight: 700 } };
     });
 
@@ -1227,8 +1294,8 @@ class Component extends DCLogic {
     const actRail = RAIL.map(([id, label]) => { if (id === 'div') return { divider: true, label: null };
       const on = S.actFilter === id;
       return { label, count: railCount(id), click: set({ actFilter: id }), divider: false,
-        style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', border: 'none', borderRadius: 8, padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: on ? 'var(--accent-soft)' : 'transparent', color: on ? 'var(--accent)' : 'var(--text)' },
-        countStyle: { fontSize: 11, fontWeight: 700, color: on ? 'var(--accent)' : 'var(--muted)', background: on ? 'transparent' : 'var(--hover)', borderRadius: 999, padding: '0 7px' } }; });
+        style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', border: 'none', borderRadius: 8, padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: on ? 'var(--accent-soft)' : 'transparent', color: on ? 'var(--accent-ink)' : 'var(--text)' },
+        countStyle: { fontSize: 11, fontWeight: 700, color: on ? 'var(--accent-ink)' : 'var(--muted)', background: on ? 'transparent' : 'var(--hover)', borderRadius: 999, padding: '0 7px' } }; });
     const RAIL_LABELS = { all: 'All', today: 'Due Today', past: 'Past Due', pending: 'Pending', done: 'Completed', Applications: 'Applications', Interviews: 'Interviews', Offers: 'Offers', Networking: 'Networking' };
     const acts = actsF.map(a => { const done = isDone(a); return { ...a, done,
       toggle: () => this.setState(s => ({ doneActs: { ...s.doneActs, [a.id]: !s.doneActs[a.id] } })),
@@ -1247,7 +1314,7 @@ class Component extends DCLogic {
       return { tag, tagStyle: tagPill(color), title: a.title, sub: a.sub, go: job ? (() => this.setState({ page: 'applications', sel: job.id })) : set({ page: 'applications' }) };
     });
     const dot = (c) => ({ width: 8, height: 8, borderRadius: '50%', background: c, marginTop: 5, flexShrink: 0 });
-    const feed = window.__CC_DATA__.feed.map(f => ({ text: f.text, date: f.date, dotStyle: dot('#16A34A') }));
+    const feed = window.__CC_DATA__.feed.map(f => ({ text: f.text, date: f.date, dotStyle: dot('#1F7A55') }));
     const tasksToday = ACTS.filter(a => a.when === 'today' && !isDone(a)).length;
     const tasksPast = ACTS.filter(a => a.when === 'past' && !isDone(a)).length;
     const trend = (c) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 700, color: c });
@@ -1255,10 +1322,10 @@ class Component extends DCLogic {
     // ---- Automation status (real: Windows Task Scheduler + Scripts/ats/*.py bots) ----
     const AUTO = window.__CC_DATA__.automation;
     const autoStalled = AUTO.stalled;
-    const autoDot = { width: 9, height: 9, borderRadius: '50%', background: autoStalled ? '#D97706' : '#16A34A', flexShrink: 0 };
+    const autoDot = { width: 9, height: 9, borderRadius: '50%', background: autoStalled ? '#D97706' : '#1F7A55', flexShrink: 0 };
     const autoBorder = autoStalled ? '#EAD9A0' : 'var(--border)';
     const autoStatusLabel = autoStalled ? 'Stalled' : 'Running on schedule';
-    const autoStatusPill = { ...pill(autoStalled ? '#D97706' : '#16A34A'), fontSize: 11 };
+    const autoStatusPill = { ...pill(autoStalled ? '#D97706' : '#1F7A55'), fontSize: 11 };
     const autoScheduleLabel = 'Scheduled ' + AUTO.scheduledTime + (AUTO.lastLogDate ? ' · last log ' + AUTO.lastLogDate : '');
     const autoStalledMsg = AUTO.daysSinceApplied === null
       ? 'No applications on record yet — nothing to compare the schedule against.'
@@ -1270,7 +1337,7 @@ class Component extends DCLogic {
 
     const kpis = [
       { id: 'discover', label: 'Discover', value: discoverNew, trend: 'new finds to triage', trendStyle: trend('#D97706'), go: set({ page: 'discover' }) },
-      { id: 'applied', label: 'Applied', value: window.__CC_DATA__.counts.applied, trend: 'tracked applications', trendStyle: trend('#16A34A'), go: set({ page: 'applications' }) },
+      { id: 'applied', label: 'Applied', value: window.__CC_DATA__.counts.applied, trend: 'tracked applications', trendStyle: trend('#1F7A55'), go: set({ page: 'applications' }) },
       { id: 'wishlist', label: 'Wishlist', value: window.__CC_DATA__.counts.wishlist, trend: 'saved, not yet applied', trendStyle: trend('#D97706'), go: set({ page: 'applications' }) },
       { id: 'tasks', label: 'Due Today', value: tasksToday, trend: tasksPast + ' past due', trendStyle: trend(tasksPast ? '#DC2626' : '#64748B'), go: set({ page: 'activities' }) },
       { id: 'interviews', label: 'Interviews', value: window.__CC_DATA__.counts.interviews, trend: window.__CC_DATA__.counts.interviews ? 'in progress' : 'none yet — keep going', trendStyle: trend('#64748B'), go: set({ page: 'applications' }) },
@@ -1284,7 +1351,7 @@ class Component extends DCLogic {
       if (!sel) return { label: '', color: 'var(--muted)', bg: 'var(--hover)', border: 'var(--border)' };
       const hasBot = sel.ats && BOT_ATS.includes(sel.ats);
       if (!hasBot) return { label: 'No auto-apply bot for this posting — manual only', color: 'var(--muted)', bg: 'var(--hover)', border: 'var(--border)' };
-      if (sel.status === 'applied') return { label: sel.ats + ' bot applied automatically', color: '#16A34A', bg: '#EDF9F0', border: '#16A34A' };
+      if (sel.status === 'applied') return { label: sel.ats + ' bot applied automatically', color: '#1F7A55', bg: '#EDF9F0', border: '#1F7A55' };
       if (sel.status === 'captcha') return { label: sel.ats + ' bot blocked by CAPTCHA — needs you', color: '#D97706', bg: '#FDF3E3', border: '#D97706' };
       if (sel.status === 'closed') return { label: sel.ats + ' bot applied — since rejected', color: 'var(--muted)', bg: 'var(--hover)', border: 'var(--border)' };
       return { label: sel.ats + ' bot will attempt this on the next daily run', color: '#2D7DD2', bg: '#EAF2FC', border: '#2D7DD2' };
@@ -1307,7 +1374,7 @@ class Component extends DCLogic {
     const kgv = (k) => sel ? (S.tailorVals[sel.id + '.cover.' + k] ?? gv(k)) : gv(k);
     const kitCover = sel ? [kgv('coverOpening'), kgv('coverBody').replace('[specific reason — replace per job]', 'of ' + ((this.details()[sel.id] || {}).about || 'your product').split('—')[0].trim().toLowerCase()), kgv('coverAsk')].join('\n\n') : '';
     const doCopy = (key, text) => () => { try { navigator.clipboard.writeText(text); } catch (e) {} this.setState({ kitCopied: key }); setTimeout(() => this.setState({ kitCopied: null }), 1500); };
-    const copyBtn = { display: 'inline-flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--accent)', borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 };
+    const copyBtn = { display: 'inline-flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--accent-ink)', borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 };
     const kitAnswers = sel ? [
       ['exp', 'Years of experience', '6+ years across design and computer science; 2 years product/UX focused'],
       ['auth', 'Work authorization', 'Authorized to work in Canada — no sponsorship required'],
@@ -1319,10 +1386,10 @@ class Component extends DCLogic {
       showDiscover: page === 'discover', goDiscover: set({ page: 'discover' }), navDiscover: nav('discover'),
       discoverNew, discoverBadge: { marginLeft: 'auto', background: discoverNew ? '#DC2626' : 'var(--hover)', color: discoverNew ? '#fff' : 'var(--muted)', borderRadius: 999, padding: '0 7px', fontSize: 10.5, fontWeight: 800 },
       srcChips, finds, findsEmpty: finds.length === 0, sources,
-      primaryBtnSm: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, border: 'none', background: 'var(--accent)', color: '#fff', borderRadius: 7, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: friend ? 'not-allowed' : 'pointer', opacity: friend ? 0.5 : 1, whiteSpace: 'nowrap' },
+      primaryBtnSm: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, border: 'none', background: 'var(--accent)', color: '#0A0A0A', borderRadius: 7, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: friend ? 'not-allowed' : 'pointer', opacity: friend ? 0.5 : 1, whiteSpace: 'nowrap' },
       dangerBtnSm: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, border: '1px solid #DC2626', background: 'transparent', color: '#DC2626', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 700, cursor: friend ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' },
       tinyBtn: { flex: 1, border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted)', borderRadius: 7, padding: '4px 10px', fontSize: 11.5, fontWeight: 600, cursor: friend ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' },
-      openAppBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', background: 'var(--accent)', color: '#fff', borderRadius: 8, padding: '10px 16px', fontSize: 13.5, fontWeight: 700, cursor: friend ? 'not-allowed' : 'pointer', opacity: friend ? 0.5 : 1, width: '100%' },
+      openAppBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', background: 'var(--accent)', color: '#0A0A0A', borderRadius: 8, padding: '10px 16px', fontSize: 13.5, fontWeight: 700, cursor: friend ? 'not-allowed' : 'pointer', opacity: friend ? 0.5 : 1, width: '100%' },
       kitFileBtn: { flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--text)', borderRadius: 8, padding: '7px 10px', fontSize: 12, fontWeight: 600, cursor: friend ? 'not-allowed' : 'pointer' },
       kitPdfBadge: { background: '#DC2626', color: '#fff', borderRadius: 5, padding: '1px 7px', fontSize: 10, fontWeight: 800 },
       kitDocxBadge: { background: '#2D7DD2', color: '#fff', borderRadius: 5, padding: '1px 7px', fontSize: 10, fontWeight: 800 },
@@ -1352,8 +1419,8 @@ class Component extends DCLogic {
       chips, rows, cols, emptyResults: rows.length === 0,
       isTable: view === 'table', isBoard: view === 'board',
       setTable: set({ view: 'table' }), setBoard: set({ view: 'board' }),
-      tableToggle: { display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', background: view === 'table' ? 'var(--accent)' : 'transparent', color: view === 'table' ? '#fff' : 'var(--text)' },
-      boardToggle: { display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', background: view === 'board' ? 'var(--accent)' : 'transparent', color: view === 'board' ? '#fff' : 'var(--text)' },
+      tableToggle: { display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', background: view === 'table' ? 'var(--accent)' : 'transparent', color: view === 'table' ? '#0A0A0A' : 'var(--text)' },
+      boardToggle: { display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', background: view === 'board' ? 'var(--accent)' : 'transparent', color: view === 'board' ? '#0A0A0A' : 'var(--text)' },
       actRail, acts, actEmpty: actsF.length === 0, actCount: actsF.length, actFilterLabel: RAIL_LABELS[S.actFilter],
       docChips, masterCards, docGroups, docGroupsEmpty,
       studioDocs, studioDocName: DOCS.find(d => d[0] === S.studioDoc)[1],
@@ -1361,8 +1428,8 @@ class Component extends DCLogic {
       setTabEditor: set({ studioTab: 'editor' }), setTabReview: set({ studioTab: 'review' }),
       tabEditor: tabBtn(!inReview), tabReview: tabBtn(inReview),
       tabIsEditor: !inReview, tabIsReview: inReview,
-      revCount: pending.length, revCountBadge: { background: pending.length ? '#DC2626' : '#16A34A', color: '#fff', borderRadius: 999, padding: '0 6px', fontSize: 10.5, fontWeight: 800 },
-      score, scoreStyle: { background: score >= 85 ? '#16A34A' : score >= 75 ? '#84CC16' : '#D97706', color: '#fff', borderRadius: 6, padding: '1px 8px', fontSize: 12.5, fontWeight: 800 },
+      revCount: pending.length, revCountBadge: { background: pending.length ? '#DC2626' : '#1F7A55', color: '#fff', borderRadius: 999, padding: '0 6px', fontSize: 10.5, fontWeight: 800 },
+      score, scoreStyle: { background: score >= 85 ? '#1F7A55' : score >= 75 ? '#84CC16' : '#D97706', color: '#fff', borderRadius: 6, padding: '1px 8px', fontSize: 12.5, fontWeight: 800 },
       saveMaster: () => {
         this.setState({ saved: 'saving' });
         fetch('/api/save-edits', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1374,7 +1441,7 @@ class Component extends DCLogic {
       sections, suggestions, noSuggestions: pending.length === 0,
       selCountLabel: selCount ? selCount + ' Selected' : 'Selected',
       applyDisabled: selCount === 0 || friend,
-      applyBtnStyle: { display: 'inline-flex', alignItems: 'center', gap: 7, border: 'none', background: selCount ? '#16A34A' : 'var(--border)', color: selCount ? '#fff' : 'var(--muted)', borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: selCount ? 'pointer' : 'not-allowed', flex: 1, justifyContent: 'center' },
+      applyBtnStyle: { display: 'inline-flex', alignItems: 'center', gap: 7, border: 'none', background: selCount ? '#1F7A55' : 'var(--border)', color: selCount ? '#fff' : 'var(--muted)', borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: selCount ? 'pointer' : 'not-allowed', flex: 1, justifyContent: 'center' },
       applySelected: () => { const upd = {}, applied = { ...S.revApplied };
         SUGG.forEach(g => { if (S.revChecked[g.id] && !applied[g.id]) { Object.assign(upd, g.apply); applied[g.id] = true; } });
         this.setState(s => ({ rv: { ...s.rv, ...upd }, revApplied: applied, revChecked: {} })); },
@@ -1398,7 +1465,7 @@ class Component extends DCLogic {
       links: [{ id: 'aman', name: 'Aman', url: 'jobhunter.app/s/x7Kd21', created: 'Jul 12' }, { id: 'priya', name: 'Priya', url: 'jobhunter.app/s/mB9q44', created: 'Jul 3' }, { id: 'group', name: 'Design group chat', url: 'jobhunter.app/s/qL2w08', created: 'Jun 21' }].map(l => {
         const on = S.linkOn[l.id];
         return { ...l, initials: initials(l.name), avStyle: { ...av(l.name, 30), borderRadius: '50%' },
-          statusLabel: on ? 'Active' : 'Paused', statusStyle: { ...pill(on ? '#16A34A' : '#64748B'), width: 56, textAlign: 'center' },
+          statusLabel: on ? 'Active' : 'Paused', statusStyle: { ...pill(on ? '#1F7A55' : '#64748B'), width: 56, textAlign: 'center' },
           toggleLabel: on ? 'Pause' : 'Resume', toggle: () => this.setState(s => ({ linkOn: { ...s.linkOn, [l.id]: !s.linkOn[l.id] } })),
           copyLabel: S.copied === l.id ? 'Copied!' : 'Copy',
           copy: () => { try { navigator.clipboard.writeText('https://' + l.url); } catch (e) {} this.setState({ copied: l.id }); setTimeout(() => this.setState({ copied: null }), 1500); } }; }),
