@@ -136,7 +136,14 @@ if ($pipelineExitCode -ne 0) {
 }
 
 Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
+Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] PIPELINE COMPLETE (exit code: $pipelineExitCode)"
+Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
+
 # --- 4. Publish the dashboard ---------------------------------------------
+# Deliberately after the COMPLETE banner. run_history.py reads that banner to
+# decide whether a day finished, so publishing first meant the run record was
+# always built from a log that had not finished yet: today's run published as
+# "incomplete, no duration" no matter how well it went.
 # The pipeline runs here; GitHub cannot see E:. So rebuild locally and push,
 # and the hosted dashboard is never more than one run behind. Telemetry-only
 # by default: the public repo gets run status and counts, never company names.
@@ -151,8 +158,5 @@ if ($env:KESTREL_PRIVATE_REPO -and (Test-Path (Join-Path $env:KESTREL_PRIVATE_RE
     Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Publishing full dashboard to the private repo"
     & python $syncScript --mode private --repo $env:KESTREL_PRIVATE_REPO --no-rebuild 2>> $stderrFile | Tee-Object -FilePath $logFile -Append
 }
-
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] PIPELINE COMPLETE (exit code: $pipelineExitCode)"
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
 
 exit $pipelineExitCode
