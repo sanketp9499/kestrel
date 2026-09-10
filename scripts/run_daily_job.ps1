@@ -100,8 +100,13 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
 
     $runOutput = $null
     try {
-        & $claudePath --print $pipelineInstruction 2>> $stderrFile | Tee-Object -FilePath $logFile -Append -Variable runOutput
+        # Not Tee-Object: -FilePath and -Variable are different parameter sets,
+        # so asking for both threw "Parameter set cannot be resolved using the
+        # specified named parameters" on every single attempt, before the CLI
+        # was ever reached. Capture first, then write the log by hand.
+        $runOutput = & $claudePath --print $pipelineInstruction 2>> $stderrFile
         $pipelineExitCode = $LASTEXITCODE
+        if ($runOutput) { Add-Content -Path $logFile -Value $runOutput }
     }
     catch {
         Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Attempt ${attempt}: exception while running Claude CLI: $_"
