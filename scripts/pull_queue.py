@@ -111,11 +111,12 @@ def main():
         f.write(json.dumps(q, indent=1, ensure_ascii=False) + "\n")
 
     if not a.no_push:
-        # Re-export from the tracker rather than merging: the tracker is the
-        # authority on what has been seen, and this is the only moment the
-        # cloud's memory can be corrected if a row was edited by hand.
+        # Union, never replace. A role sits in the queue before it reaches the
+        # tracker, so a straight tracker export would forget everything the
+        # cloud just queued and re-offer all of it tomorrow.
         p, nu, nk = scan_state.export_from_tracker(a.repo)
-        log(f"seen.json refreshed from the tracker: {nu} urls, {nk} keys")
+        log(f"seen.json now holds {nu} urls, {nk} keys "
+            f"(tracker union queued)")
         git(a.repo, "add", "state", "queue")
         if git(a.repo, "status", "--porcelain"):
             git(a.repo, "commit", "-q", "-m",

@@ -89,13 +89,31 @@ def add(repo, jobs):
     return save(repo, urls, keys), len(urls), len(keys)
 
 
-def export_from_tracker(repo):
-    """Rebuild seen.json from the laptop's tracker. Local-only: needs the xlsx."""
+def export_from_tracker(repo, replace=False):
+    """Fold the laptop's tracker into seen.json. Local-only: needs the xlsx.
+
+    Unions by default, and that is not a detail. A queued role is not in the
+    tracker until someone applies to it, so replacing the file with a tracker
+    export forgets everything the cloud queued and yesterday's five roles come
+    back tomorrow. That is the duplicate-application bug this project already
+    fixed once, re-entering through the new seam.
+
+    `replace=True` is the deliberate reset, for when the memory is genuinely
+    wrong and should be rebuilt from the tracker alone.
+    """
     from daily_auto_apply import get_existing_entries
-    urls, keys = get_existing_entries()
-    p = save(repo, urls, keys,
-             note="Exported from the local tracker. Job URLs and company|role "
-                  "keys only; no company names, statuses or documents.")
+    t_urls, t_keys = get_existing_entries()
+    if replace:
+        urls, keys = set(t_urls), set(t_keys)
+        note = "Rebuilt from the local tracker alone (--replace)."
+    else:
+        urls, keys = load_sets(repo)
+        urls |= set(t_urls)
+        keys |= set(t_keys)
+        note = ("Union of the local tracker and what the cloud has already "
+                "queued. Job URLs and company|role keys only; no company "
+                "names, statuses or documents.")
+    p = save(repo, urls, keys, note=note)
     return p, len(urls), len(keys)
 
 
@@ -104,10 +122,14 @@ if __name__ == "__main__":
     ap.add_argument("action", choices=("export", "show"))
     ap.add_argument("--repo", required=True,
                     help="Path to the private scan repo checkout")
+    ap.add_argument("--replace", action="store_true",
+                    help="Rebuild from the tracker alone instead of unioning. "
+                         "Forgets anything the cloud queued but nobody has "
+                         "applied to yet.")
     a = ap.parse_args()
 
     if a.action == "export":
-        p, nu, nk = export_from_tracker(a.repo)
+        p, nu, nk = export_from_tracker(a.repo, replace=a.replace)
         print(f"wrote {p}: {nu} urls, {nk} company|role keys")
     else:
         d = load(a.repo)
