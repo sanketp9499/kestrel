@@ -85,6 +85,7 @@ scripts/
   ats/                       eight Playwright ATS adapters + shared base
   qa_bank.py                 pattern-matched answers for screening questions
   email_monitor.py           Gmail + IMAP reply classification
+  job_folder.py              creates an application folder AND its Job_Details.md
   update_tracker.py          spreadsheet tracker updates
   cloud_scan.py              the scan half, built to run on a GitHub runner
   scan_state.py              the dedup memory the two halves share

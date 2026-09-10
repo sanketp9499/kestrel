@@ -135,6 +135,19 @@ if ($pipelineExitCode -ne 0) {
     Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] FATAL: pipeline failed $maxAttempts times, no applications were sent today"
 }
 
+# Phase 4 is told to write Job_Details.md through Scripts/job_folder.py and to
+# verify it before finishing. Check again here: the spec said to record a URL
+# for months and 55 of 189 folders still had no file, so the instruction alone
+# is not the control. This reports, it does not fail the run - the applications
+# are already prepared and a missing details file is repaired, not rolled back.
+$detailsCheck = & python (Join-Path $scriptDir "job_folder.py") --check 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] WARNING: folders are missing Job_Details.md - the tracker cannot recover their URLs"
+    Add-Content -Path $logFile -Value ($detailsCheck | Out-String).TrimEnd()
+} else {
+    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Job_Details.md present in every application folder"
+}
+
 Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
 Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] PIPELINE COMPLETE (exit code: $pipelineExitCode)"
 Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"

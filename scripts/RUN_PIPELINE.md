@@ -1,34 +1,56 @@
-# KESTREL — DAILY PIPELINE SPEC
-**Run this file:** `claudecode --print scripts/RUN_PIPELINE.md`
-**Profile:** `scripts/profile.json`
-**Workspace:** `<workspace>\`
+# DAILY JOB HUNT PIPELINE — Sanket Pawar
+**Run this file:** `claudecode --print Scripts/RUN_PIPELINE.md`
+**Profile:** `Scripts/sanket_profile.json`
+**Workspace:** `E:\Job Hunter 2026\Job Hunter\`
 
-You are a fully autonomous job application agent acting for the profile owner. Execute every phase below in order.
+## SAFE MODE — check this first, every run
+
+Run `python Scripts/safe_mode.py --status` before Phase 5.
+
+While safe mode is on, Sanket is reviewing the tailored documents before
+anything reaches an employer. **Two actions are held: submitting application
+forms, and sending any outbound email** (cold emails and the daily summary).
+
+Everything else runs normally — discovery, JD scraping, scoring, and writing
+the tailored resume, cover letter and cold email into each application folder.
+That is the point: he wants to read those documents.
+
+The hold is enforced in code, at the submit click in `ats/base.py` and at the
+SMTP call sites, so it applies no matter which script runs. Do not route around
+it — do not call SMTP directly, do not use an MCP mail tool, and do not click
+submit through a browser tool. A held application is reported as
+`held_safe_mode`; it is **not** a failure and **not** an application, and it is
+deliberately kept out of `apply_ledger.json` so the real submission can still
+happen later.
+
+Report at the end of the run how many applications were prepared and held, and
+where their documents are. Only Sanket turns this off, with
+`python Scripts/safe_mode.py --off`.
+
+---
+
+You are Sanket's fully autonomous job application agent. Execute every phase below in order.
 Never stop to ask for approval. Never solve CAPTCHAs — if a form is CAPTCHA-gated (including a
 form that appears stuck/non-advancing with a reCAPTCHA frame present), flag it and move on, do
 not loop or retry. Account creation IS permitted where a site requires one: use email
-you@example.com and the password stored in `scripts/secrets.local.json` under
+sanketp9499@gmail.com and the password stored in `Scripts/secrets.local.json` under
 `account_password` (loaded automatically via `daily_log.load_profile()` — every ATS script already
 merges secrets.local.json into the profile dict passed to it). Log all actions to
-`scripts/daily_log_<today>.txt`.
+`Scripts/daily_log_<today>.txt`.
 
 ---
 
 ## Your Identity & Rules (memorise these)
 
-All identity values come from `scripts/profile.json` (copy `profile.example.json`
-and fill it in). The rules below are the SHAPE of what that file must answer —
-the values themselves never live in this spec:
-
-- Name / email / phone / portfolio / LinkedIn — from `profile.json`
-- Work authorization and sponsorship answer — from `profile.json`
-- **Years-of-experience answers on forms** — from `profile.json`. Decide these
-  numbers once, deliberately, and never let the model improvise them per form.
-- Salary: midpoint of the posted range, or the `salary_display` default from
-  `profile.json` if none is posted
+- Name: Sanket Pawar | Email: sanketp9499@gmail.com | Phone: +1 (365) 378-9855
+- Portfolio: sanketpawar.com | LinkedIn: linkedin.com/in/-sanket-pawar
+- Work auth: Open Work Permit, Canada, no sponsorship needed
+- **Years of experience on forms: 1–2 (NEVER 6). Exception: Graphic Design/Adobe = 5, Figma = 2–3**
+- Salary: midpoint of posted range, or $65,000 CAD if none posted
 - Start date: 2 weeks from offer
-- Geography rules (which country, which cities for on-site, what to skip) —
-  from `profile.json`. Always skip: CAPTCHAs, hard requirements you don't meet.
+- Current role on forms: Product Designer at Synkora
+- Resume PDF: `Resumes/Sanket_Pawar_Resume_UX_Designer.pdf`
+- Canada only. Skip: on-site outside Ottawa, US-only, worldwide-only, CAPTCHAs, 5+ yr hard requirements
 
 ---
 
@@ -37,21 +59,21 @@ the values themselves never live in this spec:
 Run this Python script to get new jobs via Apify:
 
 ```bash
-cd "$REPO_ROOT"
-python scripts/apify_scraper.py --output scripts/daily_report.json
+cd "E:\Job Hunter 2026\Job Hunter"
+python Scripts/apify_scraper.py --output Scripts/daily_report.json
 ```
 
 Also run the Greenhouse + Lever fallback scraper. This one now also sweeps Wellfound
 (step `[4]` in its log) so you normally do not need the standalone command below:
 
 ```bash
-python scripts/daily_auto_apply.py --dry-run --output scripts/daily_report_fallback.json
+python Scripts/daily_auto_apply.py --dry-run --output Scripts/daily_report_fallback.json
 ```
 
 Wellfound on its own, if you want that source only (no API key, no login, free):
 
 ```bash
-python scripts/wellfound_scraper.py --output scripts/daily_report_wellfound.json
+python Scripts/wellfound_scraper.py --output Scripts/daily_report_wellfound.json
 ```
 
 Sources checked on 2026-09-06 and rejected, so nobody re-litigates them:
@@ -64,33 +86,33 @@ Sources checked on 2026-09-06 and rejected, so nobody re-litigates them:
 | dribbble.com/browse-project-briefs | Loads in a browser but yields **1** link; briefs are Pro-gated freelance projects, not roles. |
 | workatastartup.com | The real YC board. Returns 406 to plain HTTP but renders **30 design jobs in a browser with no login**. Parser not written yet — this is the best unclaimed source of the batch. |
 
-Session state for the gated boards is checked by `scripts/board_sessions.py --check`. Run
+Session state for the gated boards is checked by `Scripts/board_sessions.py --check`. Run
 `--login` once to sign in inside the automation Chrome profile, which is **separate** from
 everyday Chrome: having an account is not the same as the pipeline being able to see it.
 
 More scrapers that exist but are **not** in the daily run, each for a specific reason:
 
-- `scripts/hiringcafe_scraper.py` — HiringCafe sits behind Cloudflare and its fetches proved
+- `Scripts/hiringcafe_scraper.py` — HiringCafe sits behind Cloudflare and its fetches proved
   unreliable. Run by hand if you want it.
-- `scripts/yc_scraper.py` — works, no login needed, and parses cleanly (company, YC batch,
+- `Scripts/yc_scraper.py` — works, no login needed, and parses cleanly (company, YC batch,
   salary band, location). But YC startups are overwhelmingly San Francisco / New York: on the
   first real sweep, **0 of 22** design jobs were Canada-eligible. Run it occasionally with
   `--worldwide` to eyeball the remote ones; wiring it into the 8 AM job would burn a browser
   launch every morning to return nothing.
-- `scripts/wttj_scraper.py` — Welcome to the Jungle. See the note in that file: anonymous
+- `Scripts/wttj_scraper.py` — Welcome to the Jungle. See the note in that file: anonymous
   visitors get redirected into a signup funnel, so it needs a signed-in browser profile.
-- `scripts/idealist_scraper.py` — works, no login, no Cloudflare, and the parser is solid
+- `Scripts/idealist_scraper.py` — works, no login, no Cloudflare, and the parser is solid
   (one clean pipe-delimited line per card). The board carries ~1,072 jobs, but it is a US
   nonprofit board: the entry-level Canada sweep returned exactly **1** role (Operations and
   Finance Manager, Human Rights Watch, Toronto, CAD 100-120k). Keep for occasional runs.
-- `scripts/weworkremotely_scraper.py` — technically the cleanest source here: RSS, no key, no
+- `Scripts/weworkremotely_scraper.py` — technically the cleanest source here: RSS, no key, no
   login, no Cloudflare, full JDs and a skills list included. The catch is policy, not
   plumbing: **every** WWR listing is "Anywhere in the World" (16/16 design, 89/91 overall),
   and profile rule 2 says to skip worldwide-remote. Default `canada_only=True` therefore
   returns nothing. Run with `--worldwide` if that rule should bend:
-  `python scripts/weworkremotely_scraper.py --feeds design,all --worldwide`
+  `python Scripts/weworkremotely_scraper.py --feeds design,all --worldwide`
 
-Merge all reports. Deduplicate by URL against `the tracker spreadsheet (see `update_tracker.py`)`. Keep top 20 by score.
+Merge all reports. Deduplicate by URL against `Sanket_Job_Tracker_2026.xlsx`. Keep top 20 by score.
 
 Wellfound records carry two extra fields worth using: `description` (the complete JD, so
 Phase 2 can be skipped for them) and `ats_source` (ASHBY / GREENHOUSE / LEVER / WORKABLE, or
@@ -135,11 +157,13 @@ For each job, reason through these steps explicitly before proceeding:
 
 **Step 3:** Choose cover letter angle: agency / fintech / enterprise / ecommerce / general.
 
-**Step 4:** Identify custom questions and draft answers using ONLY real
-experience listed in `profile.json` (`experience_notes`). Never invent projects,
-employers, or metrics. If the profile has nothing relevant to a question, leave
-it for manual review rather than guessing — a flagged application beats a
-fabricated one.
+**Step 4:** Identify custom questions and draft answers using real experience:
+- Centennial College PGD projects (usability testing with 10 participants, website rebuild)
+- 7 years freelance visual/branding work
+- LandSeed design volunteer (Figma design system maintenance)
+- Portfolio projects at sanketpawar.com
+- Amazon Fulfillment Associate (current role Sept 2025–present, shows reliability and work ethic)
+NEVER mention Synkora as portfolio work — nothing to show. Lead with Mastery Workshops internship, LandSeed, and Freelance. Never mention Ahmedabad University internationally (just say MCA). Never say 6+ years of experience — always say 1–2 years.
 
 **Step 5:** Confirm ATS type from URL pattern.
 
@@ -149,50 +173,71 @@ Output: one JSON object per job with `{keywords, cl_angle, custom_q_answers, ats
 
 ## PHASE 4 — PREPARE DOCUMENTS
 
-> **Note for this public repo:** the document-generation scripts referenced in
-> this phase (`tailor_resume.py`, `generate_tailored_cl.js`,
-> `generate_cold_email.py`) are deliberately not included — they contain the
-> author's actual resume and cover-letter content. Bring your own generators
-> that write a per-job resume PDF and cover letter into the application folder;
-> everything downstream only needs the file paths recorded in
-> `phase4_prepared.json`.
-
 For each job where `proceed: true`:
 
 1. **Resume (tailor_resume.py handles docx + PDF conversion automatically):**
    ```bash
-   python scripts/tailor_resume.py \
+   python Scripts/tailor_resume.py \
      --company "X" --role "Y" --keywords "kw1,kw2,kw3,kw4,kw5" \
-     --output "Applications/[Company] - [Role]/[Company]_Resume.docx"
+     --output "Applications/[Company] - [Role]/[Company]_Resume_Sanket_Pawar.docx"
    ```
    This saves both the .docx AND a .pdf in the same folder.
 
 2. **Cover letter:**
    ```bash
-   node scripts/generate_tailored_cl.js \
+   node Scripts/generate_tailored_cl.js \
      --company "X" --role "Y" --desc "<first 400 chars of JD>" \
-     --output "Applications/[Company] - [Role]/[Company]_CL.docx"
+     --output "Applications/[Company] - [Role]/[Company]_CL_Sanket_Pawar.docx"
    ```
 
 3. **Cold email — DRAFT ONLY, never `--send`:**
    ```bash
-   python scripts/generate_cold_email.py \
+   python Scripts/generate_cold_email.py \
      --company "X" --role "Y" --keywords "kw1,kw2,kw3" \
-     --resume "Applications/[Company] - [Role]/[Company]_Resume.pdf" \
-     --cover-letter "Applications/[Company] - [Role]/[Company]_CL.docx" \
-     --output "Applications/[Company] - [Role]/[Company]_Cold_Email.docx"
+     --resume "Applications/[Company] - [Role]/[Company]_Resume_Sanket_Pawar.pdf" \
+     --cover-letter "Applications/[Company] - [Role]/[Company]_CL_Sanket_Pawar.docx" \
+     --output "Applications/[Company] - [Role]/[Company]_Cold_Email_Sanket_Pawar.docx"
    ```
    This phase used to pass `--send` while Phase 7 said drafts-only, and the two
    contradicted each other for weeks. Drafts-only wins: a cold email goes to a named
-   human, and an unreviewed one cannot be taken back. the user sends them himself.
+   human, and an unreviewed one cannot be taken back. Sanket sends them himself.
 
-4. **Write phase4_prepared.json** with ALL of these fields per job:
+4. **Write Job_Details.md — do not hand-roll it.** Call the shared writer,
+   once per job, before anything else in this phase:
+   ```bash
+   python Scripts/job_folder.py \
+     --company "[Company]" --role "[Role]" --status "Not Applied" \
+     --url "[posting url]" --apply-url "[apply url]" \
+     --location "[location]" --pay "[salary or blank]" \
+     --posted "[posted date]" --source "[apply_type]" --ats "[ATS]" \
+     --cl-angle "[angle]" --keywords "kw1, kw2, kw3"
+   ```
+   It creates the folder and the file together, and merges rather than
+   overwrites, so re-running it is safe and never destroys a field it has no
+   value for.
+
+   This step exists because it used to be improvised. Phase 4 listed the resume,
+   the cover letter and the cold email but never this file, so whether a job
+   ever recorded its own URL depended on what the agent felt like writing that
+   morning. **55 of 189 folders ended up with no Job_Details.md**, including six
+   of the nine CAPTCHA-blocked applications — the exact rows whose only job is
+   to send a human to a posting. The tracker is rebuilt from this file. If it is
+   missing, the job's URL is gone.
+
+5. **Verify before leaving the phase.** This must exit 0:
+   ```bash
+   python Scripts/job_folder.py --check
+   ```
+   It lists every application folder with no Job_Details.md and exits non-zero
+   if there are any. A non-zero exit here is a failed phase, not a warning.
+
+6. **Write phase4_prepared.json** with ALL of these fields per job:
    ```json
    {
      "company": "X", "title": "Y", "url": "...",
-     "resume_pdf": "Applications/.../[Company]_Resume.pdf",
-     "resume_docx": "Applications/.../[Company]_Resume.docx",
-     "cover_letter_path": "Applications/.../[Company]_CL.docx",
+     "resume_pdf": "Applications/.../[Company]_Resume_Sanket_Pawar.pdf",
+     "resume_docx": "Applications/.../[Company]_Resume_Sanket_Pawar.docx",
+     "cover_letter_path": "Applications/.../[Company]_CL_Sanket_Pawar.docx",
      "folder": "Applications/[Company] - [Role]",
      "location": "...", "salary": "...",
      "keywords": ["kw1","kw2"], "cl_angle": "fintech",
@@ -209,43 +254,43 @@ Use the per-job PDF (not the master resume) — it has the tailored summary.
 
 ```bash
 # Greenhouse
-python scripts/ats/greenhouse.py \
+python Scripts/ats/greenhouse.py \
   --url "<url>" \
-  --resume "Applications/[Company] - [Role]/[Company]_Resume.pdf" \
-  --cover-letter "Applications/[Company] - [Role]/[Company]_CL.docx" \
-  --profile scripts/profile.json \
+  --resume "Applications/[Company] - [Role]/[Company]_Resume_Sanket_Pawar.pdf" \
+  --cover-letter "Applications/[Company] - [Role]/[Company]_CL_Sanket_Pawar.docx" \
+  --profile Scripts/sanket_profile.json \
   --answers '<custom_q_answers json>' \
   --company "X" --role "Y"
 
 # Lever (same pattern — --cover-letter flag)
-python scripts/ats/lever.py \
+python Scripts/ats/lever.py \
   --url "<url>" --resume "<pdf_path>" --cover-letter "<cl_path>" \
-  --profile scripts/profile.json --answers '<json>' --company "X" --role "Y"
+  --profile Scripts/sanket_profile.json --answers '<json>' --company "X" --role "Y"
 
 # LinkedIn Easy Apply
-python scripts/ats/linkedin.py \
+python Scripts/ats/linkedin.py \
   --url "<url>" --resume "<pdf_path>" \
-  --profile scripts/profile.json --company "X" --role "Y"
+  --profile Scripts/sanket_profile.json --company "X" --role "Y"
 
 # Wellfound (same pattern — --cover-letter is read as the note to the founder)
-python scripts/ats/wellfound.py \
+python Scripts/ats/wellfound.py \
   --url "<url>" --resume "<pdf_path>" --cover-letter "<cl_path>" \
-  --profile scripts/profile.json --answers '<json>' --company "X" --role "Y"
+  --profile Scripts/sanket_profile.json --answers '<json>' --company "X" --role "Y"
 
 # Indeed / Workable / Workday / Direct — same pattern, add --cover-letter if script supports it
 ```
 
 **Wellfound needs a signed-in session** in the persistent Chrome profile at
 `~\AppData\Local\JobHunterAutomation\ChromeProfile`. There is no Wellfound account yet
-so until an account exists every Wellfound job returns
+(see `ACCOUNTS_TO_CREATE.md`), so until Sanket creates one every Wellfound job returns
 `login_required` and gets flagged, not submitted. The discovery half of the source works
 regardless.
 
 **Handle results — MANDATORY after every job:**
 - **On `success: true`:**
   1. Rename folder: `[Company] - [Role]` → `[Company] - [Role] (Applied Jul 3 2026)`
-  2. Run: `python scripts/update_tracker.py --company "X" --role "Y" --url "<url>" --status "✅ APPLIED" --date "<today>" --location "<loc>" --mode "<Remote/Hybrid>" --salary "<salary>"`
-- **On `"error": "login_required"`:** Log "LOGIN REQUIRED — flagged for the user". Add to errors list.
+  2. Run: `python Scripts/update_tracker.py --company "X" --role "Y" --url "<url>" --status "✅ APPLIED" --date "<today>" --location "<loc>" --mode "<Remote/Hybrid>" --salary "<salary>"`
+- **On `"error": "login_required"`:** Log "LOGIN REQUIRED — flagged for Sanket". Add to errors list.
 - **On `"error": "manual_required"`:** Log "MANUAL REVIEW NEEDED". Add to errors list.
 - **On `"error": "captcha_detected"`:** Mark folder as `(CAPTCHA Pending)`. Add to CAPTCHA list. Do NOT retry.
 - **On `"error": "external_ats"`** (Wellfound only): the posting is a mirror and Apply left the
@@ -263,19 +308,26 @@ account is the record. This lists every Greenhouse application with its real `ap
 current stage, and Greenhouse's own duplicate flags, then diffs it against the tracker:
 
 ```bash
-python scripts/my_greenhouse.py --reconcile --output scripts/my_greenhouse_applications.json
+python Scripts/my_greenhouse.py --reconcile --output Scripts/my_greenhouse_applications.json
 ```
 
 Anything under `MISSING` was really submitted but never tracked — add it. Anything under
 `DUPLICATE` was submitted twice; stop re-applying to it. If the command exits with
-`login_required`, the automation Chrome profile is not signed in: that is a job for the user,
-`python scripts/my_greenhouse.py --login`. Do not attempt to sign in on his behalf.
+`login_required`, the automation Chrome profile is not signed in: that is a job for Sanket,
+`python Scripts/my_greenhouse.py --login`. Do not attempt to sign in on his behalf.
 
-**Gmail is not the only inbox.** If the profile owner also uses a third-party auto-apply
-service, replies to its submissions land in that service's proxy mailbox and Gmail never
-sees them — interview requests included. `check_all_inboxes()` reads Gmail plus every
-IMAP account listed under `imap_mailboxes` in `secrets.local.json`; configure any proxy
-mailbox there so Phase 6 is not blind to half the replies.
+**Gmail is not the only inbox.** aiApply applies from a proxy mailbox it issues Sanket,
+`sanketp9499@mailboxcore.com`, and every reply to an aiApply submission lands there. That is
+where ventureLAB's interview request went (Aug 12) and where a Huzzle video interview expired
+unattempted. Read both:
+
+```bash
+python Scripts/email_monitor.py --check-mail --days 7
+```
+
+That calls `check_all_inboxes()` — Gmail plus every mailbox in `imap_mailboxes` in
+`secrets.local.json`. If it reports nothing configured, the credentials still need adding;
+they are shown at `aiapply.co/app/inbox` and the host is `imap.migadu.com:993`.
 
 Then use Gmail MCP to search for job-related emails received in the last 24 hours:
 
@@ -289,20 +341,20 @@ Then use Gmail MCP to search for job-related emails received in the last 24 hour
 
 ## PHASE 7 — SEND DAILY NOTIFICATION EMAIL
 
-This is the **only** email you send automatically to you@example.com. It is a summary of today's pipeline activity.
+This is the **only** email you send automatically to sanketp9499@gmail.com. It is a summary of today's pipeline activity.
 
-**Cold emails (Phase 4) are saved as Gmail DRAFTS only** — never auto-sent. the user reviews and sends them manually.
+**Cold emails (Phase 4) are saved as Gmail DRAFTS only** — never auto-sent. Sanket reviews and sends them manually.
 
-Use Gmail MCP `create_draft` (then immediately send it) to you@example.com:
+Use Gmail MCP `create_draft` (then immediately send it) to sanketp9499@gmail.com:
 ```bash
-python scripts/email_monitor.py --applied '<json>' --captcha '<json>' --responses '<json>' --errors '<json>'
+python Scripts/email_monitor.py --applied '<json>' --captcha '<json>' --responses '<json>' --errors '<json>'
 ```
 
-Send the email. the user reads this each morning to see: applications sent, CAPTCHAs pending, interview invites, rejections, and errors.
+Send the email. Sanket reads this each morning to see: applications sent, CAPTCHAs pending, interview invites, rejections, and errors.
 
 ---
 
 ## END OF PIPELINE
 
-Log a final summary line to `scripts/daily_log_<today>.txt`:
+Log a final summary line to `Scripts/daily_log_<today>.txt`:
 `PIPELINE COMPLETE — Applied: N | CAPTCHA: N | Interviews: N | Rejections: N | Errors: N`
