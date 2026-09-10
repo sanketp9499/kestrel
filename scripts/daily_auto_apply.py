@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Daily Job Application Automation — the user
+Daily Job Application Automation — Sanket Pawar
 ================================================
 Run every morning. Scrapes new Canada UX/Product Designer jobs,
 compares against tracker to find only NEW jobs, and outputs a
@@ -12,15 +12,25 @@ Usage:
 """
 
 import json, os, sys, datetime, re, urllib.request, urllib.parse, time, html
-from openpyxl import load_workbook
+
+# openpyxl is imported where it is used, not here. The cloud scan imports this
+# module for its scoring and dedup helpers and has no tracker to open, so it
+# should not need a spreadsheet library installed to source jobs.
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-# Workspace = the repo root (parent of scripts/). Everything is relative to it,
-# so the pipeline runs from wherever the repo is cloned.
-SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
-WORKSPACE   = os.path.dirname(SCRIPTS_DIR)
-TRACKER     = os.path.join(WORKSPACE, "Job_Tracker.xlsx")
+# KESTREL_WORKSPACE lets the same code run somewhere that is not this laptop.
+# The GitHub Actions scan checks the repo out to a runner path and sets it, so
+# nothing here may assume E: exists.
+WORKSPACE = (os.environ.get("KESTREL_WORKSPACE")
+             or r"E:\Job Hunter 2026\Job Hunter")
+if not os.path.exists(WORKSPACE):
+    _sandbox = "/sessions/eager-pensive-meitner/mnt/Job Hunter"
+    if os.path.exists(_sandbox):
+        WORKSPACE = _sandbox
+
+TRACKER     = os.path.join(WORKSPACE, "Sanket_Job_Tracker_2026.xlsx")
 APPS_DIR    = os.path.join(WORKSPACE, "Applications")
+SCRIPTS_DIR = os.path.join(WORKSPACE, "Scripts")
 REPORT_OUT  = os.path.join(SCRIPTS_DIR, "daily_report.json")
 LOG_FILE    = os.path.join(SCRIPTS_DIR, "apply_log.txt")
 
@@ -401,6 +411,7 @@ def get_existing_entries():
     urls = set()
     keys = set()
     try:
+        from openpyxl import load_workbook
         wb = load_workbook(TRACKER)
         ws = wb.active
         header = [str(c.value or "").strip().lower() for c in ws[1]]
@@ -493,7 +504,7 @@ def score_and_filter(jobs, existing_urls, existing_companies=None):
     results.sort(key=lambda x: (-x["score"], x["days_old"]))
 
     # Tag anything at a company aiApply already applied to. Flag, not filter —
-    # an interviewing company came from aiApply and turned into an interview, so a second
+    # ventureLAB came from aiApply and turned into an interview, so a second
     # tailored application is sometimes right. Phase 3 decides; this just makes
     # sure the overlap is visible instead of invisible.
     try:

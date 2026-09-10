@@ -6,9 +6,13 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-WORKSPACE = r"E:\Job Hunter 2026\Job Hunter"
+# KESTREL_WORKSPACE lets this run off the laptop; the Actions scan sets it to
+# the runner's checkout.
+WORKSPACE = os.environ.get("KESTREL_WORKSPACE") or r"E:\Job Hunter 2026\Job Hunter"
 if not os.path.exists(WORKSPACE):
-    WORKSPACE = "/sessions/eager-pensive-meitner/mnt/Job Hunter"
+    _sandbox = "/sessions/eager-pensive-meitner/mnt/Job Hunter"
+    if os.path.exists(_sandbox):
+        WORKSPACE = _sandbox
 SCRIPTS      = os.path.join(WORKSPACE, "Scripts")
 PROFILE_PATH = os.path.join(SCRIPTS, "sanket_profile.json")
 
@@ -40,8 +44,18 @@ def log(msg):
         f.write(line + "\n")
 
 def load_profile():
-    with open(PROFILE_PATH, encoding="utf-8") as f:
-        profile = json.load(f)
+    """Profile plus secrets, from whichever of them exist.
+
+    The cloud scan runs with neither file: sanket_profile.json carries a phone
+    number and resume paths, and secrets.local.json carries credentials, so
+    neither belongs in a repo a runner checks out. Both are optional here and
+    the environment fills in what matters, which for the scan is just the API
+    tokens.
+    """
+    profile = {}
+    if os.path.exists(PROFILE_PATH):
+        with open(PROFILE_PATH, encoding="utf-8") as f:
+            profile = json.load(f)
     secrets_path = os.path.join(SCRIPTS, "secrets.local.json")
     if os.path.exists(secrets_path):
         with open(secrets_path, encoding="utf-8") as f:

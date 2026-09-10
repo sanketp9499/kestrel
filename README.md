@@ -24,6 +24,30 @@ business.
 
 ---
 
+## Where each half runs
+
+A kestrel hovers, watches, then drops. The two engines were always separate,
+and as of 2026-09-10 only one of them still needs the laptop.
+
+| | Runs on | Why there |
+|---|---|---|
+| **Scan** - source, score, dedup | GitHub Actions, daily | HTTP and API calls. No browser, no login, no submission, so a datacenter IP costs it nothing. |
+| **Apply** - documents, ATS forms, email | The laptop | ATS platforms fingerprint datacenter addresses, board sessions live in a persistent local Chrome profile, and the document generators carry a real resume. |
+
+There is no LLM on the runner. Sourcing and scoring are ordinary code; the
+agent was only ever needed for tailoring and judgement, which stay local. The
+scheduled scan is therefore deterministic and needs no API key.
+
+The two halves meet over two files in a private repo: `state/seen.json`
+(normalised URLs and company|role keys, so the cloud dedups the way the tracker
+does) and `queue/<date>.json` (new scored candidates). `Scripts/pull_queue.py`
+brings a queue down and writes the same `daily_report.json` the local phases
+already expected, so nothing downstream had to learn about the split.
+
+Every pipeline outage through July to September 2026 was a *host* failure, not
+a code failure: the machine was asleep, on battery, or the scheduled task was
+terminated. Moving the half that could move removes all three.
+
 ## The pipeline
 
 ```
@@ -62,6 +86,9 @@ scripts/
   qa_bank.py                 pattern-matched answers for screening questions
   email_monitor.py           Gmail + IMAP reply classification
   update_tracker.py          spreadsheet tracker updates
+  cloud_scan.py              the scan half, built to run on a GitHub runner
+  scan_state.py              the dedup memory the two halves share
+  pull_queue.py              brings a cloud queue down to the laptop
   run_history.py             reconstructs the run record from the daily logs
   telemetry_page.py          renders the public status page
   sync_dashboard.py          redacts and publishes telemetry to this repo
