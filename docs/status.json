@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-09T22:49:56",
+  "generatedAt": "2026-09-09T22:55:01",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -634,21 +634,21 @@
       },
       {
         "date": "2026-09-09",
-        "verdict": "partial",
-        "exit": null,
-        "minutes": null,
-        "bytes": 15393
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 30.5,
+        "bytes": 15989
       }
     ],
     "firstRun": "2026-07-04",
     "lastRun": "2026-09-09",
     "ranCount": 53,
-    "workedCount": 10,
+    "workedCount": 11,
     "windowDays": 68,
-    "cleanRate": 18.9,
-    "medianMinutes": 40.1,
+    "cleanRate": 20.8,
+    "medianMinutes": 39.6,
     "longestRunMinutes": 593.9,
-    "streak": 0,
+    "streak": 1,
     "noopThresholdMinutes": 2.0
   },
   "note": "Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works."
