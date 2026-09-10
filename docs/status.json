@@ -1,28 +1,28 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-09T15:32:34",
+  "generatedAt": "2026-09-09T22:49:56",
   "counts": {
     "applied": 31,
     "captcha": 9,
-    "wishlist": 133,
+    "wishlist": 138,
     "interviews": 1,
-    "discoverNew": 14
+    "discoverNew": 10
   },
   "byStage": {
-    "not": 133,
+    "not": 138,
     "applied": 31,
     "captcha": 9,
     "closed": 10,
     "interview": 1
   },
-  "totalTracked": 184,
+  "totalTracked": 189,
   "sources": [
     {
       "id": "linkedin",
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "2d ago",
+      "synced": "15m ago",
       "health": "working"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "2d ago",
+      "synced": "15m ago",
       "health": "working"
     },
     {
@@ -103,7 +103,7 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-08",
+    "lastLogDate": "2026-09-09",
     "daysSinceApplied": 17,
     "stalled": true,
     "bots": [
@@ -634,18 +634,18 @@
       },
       {
         "date": "2026-09-09",
-        "verdict": "norun",
+        "verdict": "partial",
         "exit": null,
         "minutes": null,
-        "bytes": 0
+        "bytes": 15393
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-09-08",
-    "ranCount": 52,
+    "lastRun": "2026-09-09",
+    "ranCount": 53,
     "workedCount": 10,
     "windowDays": 68,
-    "cleanRate": 19.2,
+    "cleanRate": 18.9,
     "medianMinutes": 40.1,
     "longestRunMinutes": 593.9,
     "streak": 0,
