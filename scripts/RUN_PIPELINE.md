@@ -183,12 +183,20 @@ For each job where `proceed: true`:
    ```
    This saves both the .docx AND a .pdf in the same folder.
 
-2. **Cover letter:**
+2. **Cover letter — pass the FULL JD file, not an excerpt:**
    ```bash
    node Scripts/generate_tailored_cl.js \
-     --company "X" --role "Y" --desc "<first 400 chars of JD>" \
+     --company "X" --role "Y" \
+     --desc-file "Applications/[Company] - [Role]/Job_Description.md" \
      --output "Applications/[Company] - [Role]/[Company]_CL_Sanket_Pawar.docx"
    ```
+   This step used to pass `--desc "<first 400 chars>"`. The opening paragraph is
+   chosen from evidence in the description, and 400 characters is rarely enough
+   to judge from — part of how AltaML, an applied-AI company, received a letter
+   opening "Working at a creative agency is exactly the kind of environment I
+   thrive in". Fall back to `--desc` only when Phase 2 saved no
+   `Job_Description.md`; on thin evidence the generator deliberately says less
+   rather than guessing.
 
 3. **Cold email — DRAFT ONLY, never `--send`:**
    ```bash
