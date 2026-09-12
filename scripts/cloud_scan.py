@@ -127,18 +127,24 @@ def collect(cfg):
 def gate(scored, cfg):
     """Split scored jobs into what the laptop should see and what it should not.
 
+    The title test lives in role_filter now, shared with board_sweep, because
+    two gates that disagree is how "Backend Engineer, Developer & End-user
+    Experience Platform" and a shopping mall called McArthurGlen Designer
+    Outlet both reached a queue.
+
     Dropped roles are returned rather than discarded: a queue that silently
     shrinks is indistinguishable from a quiet day, and this project has already
     been bitten once by a number that could not tell those apart.
     """
-    import re
-    pat = re.compile(cfg["title_must_match"], re.I)
+    import role_filter
     floor = cfg["min_score"]
     keep, dropped = [], []
     for j in scored:
         title = j.get("title") or j.get("role") or ""
-        if not pat.search(title):
-            reason = "off-role"
+        ok, why = role_filter.verdict(title, j.get("location"),
+                                      require_canada=False)
+        if not ok:
+            reason = why
         elif (j.get("score") or 0) < floor:
             reason = "low-score"
         else:
