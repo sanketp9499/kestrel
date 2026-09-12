@@ -1,28 +1,28 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-09T22:55:01",
+  "generatedAt": "2026-09-12T08:29:51",
   "counts": {
     "applied": 31,
     "captcha": 9,
-    "wishlist": 138,
+    "wishlist": 156,
     "interviews": 1,
-    "discoverNew": 10
+    "discoverNew": 1
   },
   "byStage": {
-    "not": 138,
+    "not": 156,
     "applied": 31,
     "captcha": 9,
     "closed": 10,
     "interview": 1
   },
-  "totalTracked": 189,
+  "totalTracked": 207,
   "sources": [
     {
       "id": "linkedin",
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "15m ago",
+      "synced": "18m ago",
       "health": "working"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "15m ago",
+      "synced": "18m ago",
       "health": "working"
     },
     {
@@ -38,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "2d ago",
+      "synced": "5d ago",
       "health": "working"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "2d ago",
+      "synced": "5d ago",
       "health": "working"
     },
     {
@@ -54,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "2d ago",
+      "synced": "5d ago",
       "health": "working"
     },
     {
@@ -68,7 +68,7 @@
   ],
   "automation": {
     "safeMode": true,
-    "safeModeNote": "Sanket is cross-checking the tailored documents before anything goes out (set 2026-09-08)",
+    "safeModeNote": "Sanket is cross-checking the tailored documents before anything goes out (set 2026-09-08) [flag file was missing at the 2026-09-12 08:00 run; restored to its last human-set value - see daily_log_2026-09-12.txt]",
     "safeModeSince": "2026-09-09T08:26",
     "pendingVerify": [
       {
@@ -103,8 +103,8 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-09",
-    "daysSinceApplied": 17,
+    "lastLogDate": "2026-09-12",
+    "daysSinceApplied": 20,
     "stalled": true,
     "bots": [
       {
@@ -638,17 +638,38 @@
         "exit": 0,
         "minutes": 30.5,
         "bytes": 15989
+      },
+      {
+        "date": "2026-09-10",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 1160
+      },
+      {
+        "date": "2026-09-11",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 802
+      },
+      {
+        "date": "2026-09-12",
+        "verdict": "errors",
+        "exit": 1,
+        "minutes": 8.3,
+        "bytes": 31754
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-09-09",
-    "ranCount": 53,
+    "lastRun": "2026-09-12",
+    "ranCount": 56,
     "workedCount": 11,
-    "windowDays": 68,
-    "cleanRate": 20.8,
+    "windowDays": 71,
+    "cleanRate": 19.6,
     "medianMinutes": 39.6,
     "longestRunMinutes": 593.9,
-    "streak": 1,
+    "streak": 0,
     "noopThresholdMinutes": 2.0
   },
   "note": "Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works."
