@@ -152,6 +152,17 @@ async def _apply(url, resume_pdf, profile, custom_answers, dry_run, headless=Tru
             result["success"] = True
             return result
 
+        # Safe mode is checked immediately before the click, the same way
+        # ats/base.py does it for the adapters that go through
+        # submit_and_confirm(). This adapter does not, so without this the hold
+        # documented in RUN_PIPELINE.md simply did not apply to it.
+        import safe_mode
+        if safe_mode.guard("submit"):
+            result["error"] = "held_safe_mode"
+            result["verdict"] = "held_safe_mode"
+            result["signal"] = safe_mode.reason("submit")
+            return result
+
         submitted = await click_if_exists(
             page,
             'button:has-text("Send"), button:has-text("Submit"), '
@@ -196,7 +207,7 @@ if __name__ == "__main__":
     p.add_argument("--url",      required=True)
     p.add_argument("--resume",   required=True)
     p.add_argument("--cover-letter", default="", dest="cover_letter")
-    p.add_argument("--profile",  default="scripts/profile.json")
+    p.add_argument("--profile",  default="Scripts/sanket_profile.json")
     p.add_argument("--answers",  default="{}")
     p.add_argument("--dry-run",  action="store_true")
     p.add_argument("--headless", action="store_true")

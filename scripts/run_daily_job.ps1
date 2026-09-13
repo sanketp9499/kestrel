@@ -78,7 +78,26 @@ $stderrFile = Join-Path $scriptDir "daily_stderr_$(Get-Date -Format 'yyyy-MM-dd'
 # clarifying question and no phases at all, returned 0, and this wrapper logged
 # PIPELINE COMPLETE. Nobody found out for a day. So the output has to show
 # evidence that the phases executed before the attempt counts as a success.
-$ranMarker = 'Phase\s*1|Phase\s*5|PIPELINE COMPLETE'
+#
+# Two bugs in the original form of this check, both found on 2026-09-12.
+#
+# 1. It was matched against the CLI's stdout prose only. The phases do not write
+#    to stdout - they write to this same daily log, via Scripts/_log_note.py, as
+#    they run. Prose is a summary written afterwards, so whether it happened to
+#    contain the literal "Phase 1" depended on how the agent chose to format its
+#    answer. On 2026-09-12 a run that executed all seven phases summarised them
+#    in a table ("| 1 Discover |", "| 5 Apply |"), matched nothing, and was
+#    scored a failure. It was then retried - re-billing Apify and Firecrawl and
+#    risking duplicate tracker rows - to redo work that was already complete.
+#    Look at the lines the phases actually appended during this attempt instead.
+#
+# 2. The marker did not match the log's real phase lines anyway. They are
+#    written as "Phase2 ", "Phase3 ", "=== PHASE 1 START", not "Phase 1".
+#
+# Keep the prose in the haystack too: it is appended to the log below, and a run
+# that names its phases in prose is still evidence. But it is no longer the only
+# evidence, which is the part that failed.
+$ranMarker = '===\s*PHASE\s*\d|Phase\s*\d|PIPELINE COMPLETE'
 
 # The marker above catches the symptom. The cause is here: the CLI was handed a
 # bare file path as its prompt, so it read the run as "look at this file" rather
@@ -99,6 +118,14 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
     }
 
     $runOutput = $null
+
+    # Line count of the log before this attempt, so the check below can look at
+    # only what this attempt appended and not credit an earlier attempt's work.
+    $logLinesBefore = 0
+    if (Test-Path $logFile) {
+        $logLinesBefore = @(Get-Content -Path $logFile -ErrorAction SilentlyContinue).Count
+    }
+
     try {
         # Not Tee-Object: -FilePath and -Variable are different parameter sets,
         # so asking for both threw "Parameter set cannot be resolved using the
@@ -113,7 +140,18 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
         $pipelineExitCode = 1
     }
 
-    $joined = ($runOutput -join "`n")
+    # Evidence = what the phases appended to the log during this attempt, plus
+    # the prose (which Add-Content has already appended above, but keep it
+    # explicitly in case the run wrote nothing to the log at all).
+    $appended = @()
+    if (Test-Path $logFile) {
+        $allLines = @(Get-Content -Path $logFile -ErrorAction SilentlyContinue)
+        if ($allLines.Count -gt $logLinesBefore) {
+            $appended = $allLines[$logLinesBefore..($allLines.Count - 1)]
+        }
+    }
+    $joined = (($appended + $runOutput) -join "`n")
+
     if ($pipelineExitCode -eq 0 -and $joined -notmatch $ranMarker) {
         Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Attempt ${attempt}: exit 0 but no phase ran. The run answered instead of executing. Treating as a failure."
         $pipelineExitCode = 2

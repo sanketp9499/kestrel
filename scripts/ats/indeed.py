@@ -97,7 +97,7 @@ async def _apply(url: str, resume_pdf: str, profile: dict, custom_answers: dict,
             page,
             'input[name="company"], input[placeholder*="Company"], '
             'input[aria-label*="Company"]',
-            profile.get("current_company", "ExampleCo"),
+            profile.get("current_company", "Synkora"),
         )
 
         # Years of experience
@@ -124,6 +124,17 @@ async def _apply(url: str, resume_pdf: str, profile: dict, custom_answers: dict,
         if dry_run:
             log(f"  [DRY RUN] Indeed Easy Apply ready (not submitting): {url}")
             result["success"] = True
+            return result
+
+        # Safe mode is checked immediately before the click, the same way
+        # ats/base.py does it for the adapters that go through
+        # submit_and_confirm(). This adapter does not, so without this the hold
+        # documented in RUN_PIPELINE.md simply did not apply to it.
+        import safe_mode
+        if safe_mode.guard("submit"):
+            result["error"] = "held_safe_mode"
+            result["verdict"] = "held_safe_mode"
+            result["signal"] = safe_mode.reason("submit")
             return result
 
         # --- Submit ---
@@ -181,7 +192,7 @@ if __name__ == "__main__":
     p.add_argument("--url",      required=True,  help="Indeed job URL")
     p.add_argument("--resume",   required=True,  help="Path to resume PDF")
     p.add_argument("--profile",  default=os.path.join(
-                       os.path.dirname(__file__), "..", "profile.json"))
+                       os.path.dirname(__file__), "..", "sanket_profile.json"))
     p.add_argument("--answers",  default="{}")
     p.add_argument("--dry-run",  action="store_true")
     args = p.parse_args()
