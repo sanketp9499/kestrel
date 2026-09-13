@@ -2,9 +2,11 @@
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import asyncio
-from ats.base import (launch_browser, fill_if_exists, upload_file, click_if_exists, check_success,
+from ats.base import (launch_browser, fill_if_exists, upload_file, click_if_exists, check_success, submit_and_confirm, evidence_dir_for,
                        answer_custom_questions, maybe_create_account)
+from ats.base import emit_result
 from daily_log import log
+import daily_log
 
 async def _apply(url, resume_pdf, profile, custom_answers, dry_run, headless=True, company="", role=""):
     pw, browser, page = await launch_browser(headless=headless)
@@ -71,11 +73,22 @@ async def _apply(url, resume_pdf, profile, custom_answers, dry_run, headless=Tru
             result["success"] = True
             return result
 
-        await click_if_exists(page, 'button[type="submit"], input[type="submit"]')
-        await page.wait_for_timeout(3000)
-        result["success"] = await check_success(page)
-        if not result["success"]:
-            result["error"] = "No confirmation found after submit"
+        evidence_dir = evidence_dir_for(company, role)
+        verdict = await submit_and_confirm(page, 'button[type="submit"], input[type="submit"]',
+                                           evidence_dir=evidence_dir, label="Greenhouse")
+        result["verdict"] = verdict["verdict"]
+        result["confirm_signal"] = verdict["signal"]
+        result["validation_errors"] = verdict["errors"]
+        result["evidence"] = verdict["evidence"]
+        result["success"] = verdict["verdict"] == "applied"
+        result["submit_clicked"] = verdict["verdict"] in ("applied", "unconfirmed")
+        result["retry_safe"] = verdict["verdict"] in ("blocked", "no_button", "held_safe_mode")
+        if verdict["verdict"] == "blocked":
+            result["error"] = "blocked - nothing sent: " + "; ".join(verdict["errors"])[:180]
+        elif verdict["verdict"] == "no_button":
+            result["error"] = "manual_required - no submit control (not submitted)"
+        elif verdict["verdict"] == "unconfirmed":
+            result["error"] = "submitted_unconfirmed - verify by hand, do not resubmit"
 
     except Exception as e:
         result["error"] = str(e)
@@ -94,13 +107,16 @@ if __name__ == "__main__":
     p.add_argument("--url",           required=True)
     p.add_argument("--resume",        required=True)
     p.add_argument("--cover-letter",  default="", dest="cover_letter")
-    p.add_argument("--profile",       default="scripts/profile.json")
+    p.add_argument("--profile",       default="Scripts/sanket_profile.json")
     p.add_argument("--answers",       default="{}")
     p.add_argument("--dry-run",       action="store_true")
     p.add_argument("--headless",      action="store_true")
     p.add_argument("--company",       default="")
     p.add_argument("--role",          default="")
     args = p.parse_args()
+    if args.dry_run:
+        # Not an application: keep it out of the published run record.
+        daily_log.use_test_log()
     profile = json.load(open(args.profile))
     secrets_path = os.path.join(os.path.dirname(args.profile), "secrets.local.json")
     if os.path.exists(secrets_path):
@@ -109,4 +125,4 @@ if __name__ == "__main__":
         profile["cover_letter_path"] = args.cover_letter
     answers = json.loads(args.answers)
     result  = apply_greenhouse(args.url, args.resume, profile, answers, args.dry_run, args.headless, args.company, args.role)
-    print(json.dumps(result, indent=2))
+    emit_result(result)

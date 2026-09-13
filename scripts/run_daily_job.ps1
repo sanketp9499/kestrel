@@ -1,4 +1,4 @@
-# run_daily_job.ps1 — Wrapper that loads secrets and runs the daily job pipeline
+﻿# run_daily_job.ps1 — Wrapper that loads secrets and runs the daily job pipeline
 # Called by Windows Task Scheduler at 08:00 AM
 #
 # This script:
@@ -13,9 +13,58 @@ $secretsFile = Join-Path $scriptDir "secrets.local.json"
 $pipelinePrompt = Join-Path $workspace "Scripts\RUN_PIPELINE.md"
 $logFile = Join-Path $scriptDir "daily_log_$(Get-Date -Format 'yyyy-MM-dd').txt"
 
+# The log is shared with daily_log.py, which writes UTF-8. Add-Content writes
+# ANSI and Tee-Object writes UTF-16LE, so between them they left
+# daily_log_2026-09-12.txt with three encodings in one file and 137 NUL bytes.
+# Write-KestrelLog* are the only writers allowed to touch it from here.
+. (Join-Path $scriptDir "kestrel_log.ps1")
+
+# `2>>` is Out-File underneath, and its default on PowerShell 5.1 is UTF-16LE.
+# That is why every non-empty daily_stderr_*.txt starts FF FE and is padded with
+# NUL bytes. It does not reproduce in an interactive shell that already carries a
+# UTF-8 default; it reproduces under Task Scheduler, which is where the real runs
+# happen. Must stay above the first redirection in this file.
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+
 # Pipeline scripts log Unicode (arrows, box-drawing). Without this, Python
 # defaults to cp1252 on Windows and dies with UnicodeEncodeError.
 $env:PYTHONIOENCODING = "utf-8"
+
+# --- 0. One run at a time -----------------------------------------------------
+# On 2026-09-12 a manual run started at 07:54 and the scheduled task fired at
+# 08:00. The second one could not append to daily_stderr_2026-09-12.txt - "The
+# process cannot access the file because it is being used by another process" -
+# failed all three attempts and logged "FATAL: pipeline failed 3 times, no
+# applications were sent today". Nothing was wrong with the pipeline.
+#
+# The wasted run is the mild consequence. The serious one is that two runs
+# sourcing and applying at the same time can both submit to the same posting,
+# which is the duplicate-application bug this project already fixed once.
+#
+# This file is UTF-8 WITH a BOM. Without it PowerShell 5.1 decodes the script
+# as ANSI, and the box-drawing banner below arrives in memory already
+# corrupted. Do not strip the BOM.
+$lockFile = Join-Path $scriptDir "run_daily_job.lock"
+if (Test-Path $lockFile) {
+    $holder = (Get-Content -Raw $lockFile -ErrorAction SilentlyContinue).Trim()
+    $alive = $null
+    if ($holder -match '^\d+$') {
+        $alive = Get-Process -Id ([int]$holder) -ErrorAction SilentlyContinue
+    }
+    if ($alive) {
+        Write-KestrelLogStamped -Path $logFile -Message "SKIPPED: another run (pid $holder) is already in progress. Not starting a second one."
+        exit 0
+    }
+    Write-KestrelLogStamped -Path $logFile -Message "Stale lock from pid $holder (no such process); taking it over."
+    Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
+}
+Set-Content -Path $lockFile -Value $PID -Encoding ASCII
+
+# Release it however this script ends, including Ctrl-C and an unhandled throw.
+trap {
+    Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
+    break
+}
 
 # ── 1. Load secrets from JSON if present ──────────────────────────────────────
 
@@ -25,20 +74,20 @@ if (Test-Path $secretsFile) {
 
         if ($secretsJson.apify_token) {
             $env:APIFY_TOKEN = $secretsJson.apify_token
-            Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Loaded APIFY_TOKEN from secrets.local.json"
+            Write-KestrelLogStamped -Path $logFile -Message "Loaded APIFY_TOKEN from secrets.local.json"
         }
 
         if ($secretsJson.firecrawl_key) {
             $env:FIRECRAWL_KEY = $secretsJson.firecrawl_key
-            Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Loaded FIRECRAWL_KEY from secrets.local.json"
+            Write-KestrelLogStamped -Path $logFile -Message "Loaded FIRECRAWL_KEY from secrets.local.json"
         }
     }
     catch {
-        Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] WARNING: Failed to parse secrets.local.json: $_"
+        Write-KestrelLogStamped -Path $logFile -Message "WARNING: Failed to parse secrets.local.json: $_"
     }
 }
 else {
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] INFO: secrets.local.json not found; skipping credential setup"
+    Write-KestrelLogStamped -Path $logFile -Message "INFO: secrets.local.json not found; skipping credential setup"
 }
 
 # ── 2. Resolve the Claude CLI binary ──────────────────────────────────────────
@@ -49,17 +98,17 @@ if (-not $claudePath) {
 }
 
 if (-not $claudePath) {
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ERROR: Neither 'claudecode' nor 'claude' found on PATH"
+    Write-KestrelLogStamped -Path $logFile -Message "ERROR: Neither 'claudecode' nor 'claude' found on PATH"
     exit 1
 }
 
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Resolved Claude CLI: $claudePath"
+Write-KestrelLogStamped -Path $logFile -Message "Resolved Claude CLI: $claudePath"
 
 # ── 3. Run the pipeline ───────────────────────────────────────────────────────
 
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] STARTING PIPELINE: RUN_PIPELINE.md"
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
+Write-KestrelLogStamped -Path $logFile -Message "════════════════════════════════════════════════════════════════════════════════"
+Write-KestrelLogStamped -Path $logFile -Message "STARTING PIPELINE: RUN_PIPELINE.md"
+Write-KestrelLogStamped -Path $logFile -Message "════════════════════════════════════════════════════════════════════════════════"
 
 # On 2026-09-06 the CLI returned "Error: No messages returned from query" and the
 # whole day's run was lost — no jobs sourced, no applications, no summary email.
@@ -106,14 +155,14 @@ $ranMarker = '===\s*PHASE\s*\d|Phase\s*\d|PIPELINE COMPLETE'
 # runs ended that way. A path carries no verb and does not say that nobody is
 # at the keyboard, so say both.
 #
-# Keep these literals ASCII. This file is UTF-8 with no BOM, so PowerShell 5.1
-# reads it as ANSI and a single em dash silently terminates the string.
+# The BOM at the top of this file is what lets a non-ASCII literal here
+# survive PowerShell 5.1's decoding. Do not strip it.
 $pipelineInstruction = "Read the file at $pipelinePrompt and execute it end to end, starting now at Phase 1. This is the unattended 08:00 scheduled run: no operator is at the keyboard and nobody will read a question. Do not ask for confirmation and do not stop to clarify. Where the spec is ambiguous, follow the file and log the decision you made. Scripts/SAFE_MODE.json decides whether anything is actually submitted or emailed; honour it and never override it."
 
 for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
     if ($attempt -gt 1) {
         $waitSeconds = 60 * ($attempt - 1)
-        Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Retry $attempt of $maxAttempts in $waitSeconds s"
+        Write-KestrelLogStamped -Path $logFile -Message "Retry $attempt of $maxAttempts in $waitSeconds s"
         Start-Sleep -Seconds $waitSeconds
     }
 
@@ -133,10 +182,10 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
         # was ever reached. Capture first, then write the log by hand.
         $runOutput = & $claudePath --print $pipelineInstruction 2>> $stderrFile
         $pipelineExitCode = $LASTEXITCODE
-        if ($runOutput) { Add-Content -Path $logFile -Value $runOutput }
+        if ($runOutput) { Write-KestrelLog -Path $logFile -Message $runOutput }
     }
     catch {
-        Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Attempt ${attempt}: exception while running Claude CLI: $_"
+        Write-KestrelLogStamped -Path $logFile -Message "Attempt ${attempt}: exception while running Claude CLI: $_"
         $pipelineExitCode = 1
     }
 
@@ -153,24 +202,24 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
     $joined = (($appended + $runOutput) -join "`n")
 
     if ($pipelineExitCode -eq 0 -and $joined -notmatch $ranMarker) {
-        Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Attempt ${attempt}: exit 0 but no phase ran. The run answered instead of executing. Treating as a failure."
+        Write-KestrelLogStamped -Path $logFile -Message "Attempt ${attempt}: exit 0 but no phase ran. The run answered instead of executing. Treating as a failure."
         $pipelineExitCode = 2
     }
 
     if ($pipelineExitCode -eq 0) { break }
 
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Attempt ${attempt} failed (exit code: $pipelineExitCode)"
+    Write-KestrelLogStamped -Path $logFile -Message "Attempt ${attempt} failed (exit code: $pipelineExitCode)"
 }
 
 if ((Test-Path $stderrFile) -and ((Get-Item $stderrFile).Length -gt 0)) {
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] stderr captured in: $stderrFile"
+    Write-KestrelLogStamped -Path $logFile -Message "stderr captured in: $stderrFile"
 }
 
 if ($pipelineExitCode -ne 0) {
     # Keep non-ASCII out of PowerShell string literals here. This file is UTF-8
     # with no BOM, so Windows PowerShell 5.1 reads it as ANSI: an em dash decodes
     # to a smart quote, which silently terminates the string and breaks the parse.
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] FATAL: pipeline failed $maxAttempts times, no applications were sent today"
+    Write-KestrelLogStamped -Path $logFile -Message "FATAL: pipeline failed $maxAttempts times, no applications were sent today"
 }
 
 # Phase 4 is told to write Job_Details.md through Scripts/job_folder.py and to
@@ -180,15 +229,15 @@ if ($pipelineExitCode -ne 0) {
 # are already prepared and a missing details file is repaired, not rolled back.
 $detailsCheck = & python (Join-Path $scriptDir "job_folder.py") --check 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] WARNING: folders are missing Job_Details.md - the tracker cannot recover their URLs"
-    Add-Content -Path $logFile -Value ($detailsCheck | Out-String).TrimEnd()
+    Write-KestrelLogStamped -Path $logFile -Message "WARNING: folders are missing Job_Details.md - the tracker cannot recover their URLs"
+    Write-KestrelLog -Path $logFile -Message ($detailsCheck | Out-String).TrimEnd()
 } else {
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Job_Details.md present in every application folder"
+    Write-KestrelLogStamped -Path $logFile -Message "Job_Details.md present in every application folder"
 }
 
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] PIPELINE COMPLETE (exit code: $pipelineExitCode)"
-Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ════════════════════════════════════════════════════════════════════════════════"
+Write-KestrelLogStamped -Path $logFile -Message "════════════════════════════════════════════════════════════════════════════════"
+Write-KestrelLogStamped -Path $logFile -Message "PIPELINE COMPLETE (exit code: $pipelineExitCode)"
+Write-KestrelLogStamped -Path $logFile -Message "════════════════════════════════════════════════════════════════════════════════"
 
 # --- 4. Publish the dashboard ---------------------------------------------
 # Deliberately after the COMPLETE banner. run_history.py reads that banner to
@@ -202,12 +251,13 @@ Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] �
 $publicRepo = "C:\Users\Sanket\Projects\kestrel"
 $syncScript = Join-Path $scriptDir "sync_dashboard.py"
 if (Test-Path (Join-Path $publicRepo ".git")) {
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Publishing telemetry to the public repo"
-    & python $syncScript --mode public --repo $publicRepo 2>> $stderrFile | Tee-Object -FilePath $logFile -Append
+    Write-KestrelLogStamped -Path $logFile -Message "Publishing telemetry to the public repo"
+    & python $syncScript --mode public --repo $publicRepo 2>> $stderrFile | Write-KestrelLogTee -Path $logFile
 }
 if ($env:KESTREL_PRIVATE_REPO -and (Test-Path (Join-Path $env:KESTREL_PRIVATE_REPO ".git"))) {
-    Add-Content -Path $logFile -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Publishing full dashboard to the private repo"
-    & python $syncScript --mode private --repo $env:KESTREL_PRIVATE_REPO --no-rebuild 2>> $stderrFile | Tee-Object -FilePath $logFile -Append
+    Write-KestrelLogStamped -Path $logFile -Message "Publishing full dashboard to the private repo"
+    & python $syncScript --mode private --repo $env:KESTREL_PRIVATE_REPO --no-rebuild 2>> $stderrFile | Write-KestrelLogTee -Path $logFile
 }
 
+Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
 exit $pipelineExitCode

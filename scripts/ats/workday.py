@@ -7,9 +7,11 @@ Supported URL patterns:
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import asyncio
-from ats.base import (launch_browser, fill_if_exists, upload_file, click_if_exists, check_success,
+from ats.base import (launch_browser, fill_if_exists, upload_file, click_if_exists, check_success, submit_and_confirm, evidence_dir_for,
                        answer_custom_questions, maybe_create_account, captcha_blocking, upload_cover_letter)
+from ats.base import emit_result
 from daily_log import log
+import daily_log
 
 
 
@@ -136,24 +138,22 @@ async def _apply(url, resume_pdf, profile, custom_answers, dry_run, headless=Tru
                 pass
 
         # Final submit
-        await click_if_exists(
-            page,
-            'button[data-automation-id="bottom-navigation-submit-button"], '
-            'button[data-automation-id="bottom-navigation-next-button"]',
-        )
-        try:
-            await page.wait_for_selector(
-                'div[data-automation-id="confirmation"], '
-                'h1:has-text("Thank"), p:has-text("application")',
-                timeout=10000,
-            )
-        except Exception:
-            pass
-
-        result["success"] = await check_success(page)
-        if not result["success"]:
-            result["error"] = "No confirmation detected after submit"
-            log(f"  Workday: no confirmation at {url}")
+        evidence_dir = evidence_dir_for(company, role)
+        verdict = await submit_and_confirm(page, 'button[data-automation-id="bottom-navigation-submit-button"]',
+                                           evidence_dir=evidence_dir, label="Workday")
+        result["verdict"] = verdict["verdict"]
+        result["confirm_signal"] = verdict["signal"]
+        result["validation_errors"] = verdict["errors"]
+        result["evidence"] = verdict["evidence"]
+        result["success"] = verdict["verdict"] == "applied"
+        result["submit_clicked"] = verdict["verdict"] in ("applied", "unconfirmed")
+        result["retry_safe"] = verdict["verdict"] in ("blocked", "no_button", "held_safe_mode")
+        if verdict["verdict"] == "blocked":
+            result["error"] = "blocked - nothing sent: " + "; ".join(verdict["errors"])[:180]
+        elif verdict["verdict"] == "no_button":
+            result["error"] = "manual_required - no submit control (not submitted)"
+        elif verdict["verdict"] == "unconfirmed":
+            result["error"] = "submitted_unconfirmed - verify by hand, do not resubmit"
 
     except Exception as e:
         result["error"] = str(e)
@@ -174,12 +174,15 @@ if __name__ == "__main__":
     p.add_argument("--url",      required=True)
     p.add_argument("--resume",   required=True)
     p.add_argument("--cover-letter", default="", dest="cover_letter")
-    p.add_argument("--profile",  default="scripts/profile.json")
+    p.add_argument("--profile",  default="Scripts/sanket_profile.json")
     p.add_argument("--dry-run",  action="store_true")
     p.add_argument("--headless", action="store_true")
     p.add_argument("--company",  default="")
     p.add_argument("--role",     default="")
     args = p.parse_args()
+    if args.dry_run:
+        # Not an application: keep it out of the published run record.
+        daily_log.use_test_log()
     profile = json.load(open(args.profile))
     secrets_path = os.path.join(os.path.dirname(args.profile), "secrets.local.json")
     if os.path.exists(secrets_path):
@@ -187,4 +190,4 @@ if __name__ == "__main__":
     if args.cover_letter:
         profile["cover_letter_path"] = args.cover_letter
     result = apply_workday(args.url, args.resume, profile, dry_run=args.dry_run, headless=args.headless, company=args.company, role=args.role)
-    print(json.dumps(result, indent=2))
+    emit_result(result)

@@ -56,12 +56,38 @@ merges secrets.local.json into the profile dict passed to it). Log all actions t
 
 ## PHASE 1 — DISCOVER NEW JOBS
 
-Run this Python script to get new jobs via Apify:
+**Run the ATS board sweep FIRST. It is the primary source.**
 
 ```bash
 cd "E:\Job Hunter 2026\Job Hunter"
+python Scripts/board_sweep.py --json > Scripts/daily_report_boards.json
+```
+
+It reads the Greenhouse, Lever, Ashby and Workable boards that `ats_resolver.py`
+has already mapped: **64 boards, 3,450 open postings**, over plain HTTP. No API
+key, no quota, no browser, no CAPTCHA, and every one of them is a board the
+adapters can actually submit to. Verified 2026-09-13: 3,450 scanned, 51 kept,
+0 boards unreachable.
+
+Grow the board list as companies appear, so the primary source keeps widening:
+
+```bash
+python Scripts/ats_resolver.py --backfill --limit 25   # map new companies to boards
+python Scripts/ats_resolver.py --report                # cache size and coverage
+```
+
+Then Apify, as a **secondary** source for LinkedIn and Indeed:
+
+```bash
 python Scripts/apify_scraper.py --output Scripts/daily_report.json
 ```
+
+Apify is a FREE plan with $5 of monthly credit and a hard stop when it runs out.
+It exhausted the September allowance on 2026-09-12; the cycle resets on the 28th
+(signup day of month). While it is out, `apify_scraper` returns an empty list and
+logs `APIFY UNAVAILABLE`. **That line means the run is degraded, not that the
+market is quiet — log it as an error and say so in the phase 1 summary.** Do not
+treat a small pool as a normal day when that line is present.
 
 Also run the Greenhouse + Lever fallback scraper. This one now also sweeps Wellfound
 (step `[4]` in its log) so you normally do not need the standalone command below:
@@ -114,6 +140,25 @@ More scrapers that exist but are **not** in the daily run, each for a specific r
 
 Merge all reports. Deduplicate by URL against `Sanket_Job_Tracker_2026.xlsx`. Keep top 20 by score.
 
+**Then drop the postings that are already gone, before anything is spent on them:**
+
+```python
+from link_check import filter_alive
+jobs, dead = filter_alive(jobs)      # dead rows carry dead_reason
+```
+
+A dead posting otherwise costs a Firecrawl extraction, two Claude document calls,
+a folder and a tracker row before phase 5 finds out. `ats_resolver.py` measured
+it: 11 of 13 Lever slugs and 10 of 17 Greenhouse slugs were 404.
+
+Only 404 and 410 are dropped. 403, 429 and timeouts are **kept** - a bot filter
+is not evidence a job is gone, and dropping those would silently delete real
+postings. A 200 whose body says "no longer accepting applications" is dropped.
+Log every drop with its `dead_reason`.
+
+Known limit: LinkedIn renders that message in JS, so an expired LinkedIn posting
+still returns a clean 200 here. The check is strongest on real ATS boards.
+
 Wellfound records carry two extra fields worth using: `description` (the complete JD, so
 Phase 2 can be skipped for them) and `ats_source` (ASHBY / GREENHOUSE / LEVER / WORKABLE, or
 empty when the job is applied to natively on Wellfound). Roughly half are mirrors of a real
@@ -151,7 +196,31 @@ Extract any visible custom screening questions.
 
 For each job, reason through these steps explicitly before proceeding:
 
-**Step 1:** Hard requirements check — does the role require 5+ years, specific clearance, or on-site outside Ottawa? If yes → skip, log reason.
+**Step 1:** Hard requirements check — clearance, citizenship, or on-site outside the GTA? If yes → skip, log reason.
+
+For years of experience, **do not judge by the title and do not skip on 5+ alone.**
+Sanket's rule: he is not hunting senior roles, but if he is eligible then why
+not, and he wants every design discipline in the net — brand, creative, graphic,
+learning design included. A title is a bad proxy anyway: "Senior Product
+Designer" at a startup can ask for 3 years while "Product Designer" at a bank
+asks for 8.
+
+Read the number the posting actually states:
+
+```python
+from experience_gate import assess
+band = assess(jd_text)     # {"years", "band", "keep", "reason"}
+```
+
+- `match` — at or near his ~2 years. Proceed.
+- `stretch` — asks more than he has and is still worth applying to. **Proceed**,
+  and put the band in the log so the report can rank it.
+- `out of band` — 9+ years. The only case that skips, with `reason` as the
+  `skip_reason`.
+- `unstated` — most good postings never name a number. Proceed.
+
+On 2026-09-12 this step skipped 11 of 13 jobs on "5+ years" and the day ended
+with two applications. Those were stretch applications being thrown away.
 
 **Step 2:** Extract top 5 keywords from the JD to embed in the resume summary (e.g., "design systems", "Figma", "cross-functional", "product strategy").
 
@@ -182,6 +251,27 @@ For each job where `proceed: true`:
      --output "Applications/[Company] - [Role]/[Company]_Resume_Sanket_Pawar.docx"
    ```
    This saves both the .docx AND a .pdf in the same folder.
+
+   **Then score it against the posting before moving on:**
+   ```bash
+   python Scripts/ats_match.py \
+     --jd-file "Applications/[Company] - [Role]/Job_Description.md" \
+     --resume  "Applications/[Company] - [Role]/[Company]_Resume_Sanket_Pawar.docx" \
+     --company "X"
+   ```
+   Exits 0 at or above 0.70 coverage, 1 below, and prints `missing` either way.
+
+   Every ATS on the receiving end runs this comparison before a human sees the
+   file, and nothing here ran it before. Scored against the 12 real application
+   folders on disk, the median was **0.68** and 7 of 12 were below the gate,
+   missing things the postings explicitly asked for: style guide, Photoshop,
+   Illustrator, Sketch, InVision, motion design, component library, Agile.
+
+   Below the gate: re-run `tailor_resume.py` with the missing terms added to
+   `--keywords`, then score again. **Only add terms that are true.** The missing
+   list says what the posting asked for, not what Sanket has done. If a missing
+   keyword is a skill he does not have, leave it missing, log it, and move on -
+   a resume that passes the gate by lying fails the interview instead.
 
 2. **Cover letter — pass the FULL JD file, not an excerpt:**
    ```bash
@@ -243,6 +333,7 @@ For each job where `proceed: true`:
    ```json
    {
      "company": "X", "title": "Y", "url": "...",
+     "apply_url": "...",
      "resume_pdf": "Applications/.../[Company]_Resume_Sanket_Pawar.pdf",
      "resume_docx": "Applications/.../[Company]_Resume_Sanket_Pawar.docx",
      "cover_letter_path": "Applications/.../[Company]_CL_Sanket_Pawar.docx",
@@ -252,6 +343,21 @@ For each job where `proceed: true`:
      "ats_type": "GREENHOUSE", "custom_q_answers": {}
    }
    ```
+
+   `url` is the posting. `apply_url` is the page the adapter is driven against,
+   and the two differ whenever Apply leaves the listing site - a LinkedIn or
+   Wellfound post whose form is hosted on Greenhouse. **Set `apply_url` to the
+   posting URL when they are the same; never leave it blank.** On 2026-09-12
+   all 18 phase 3 records and both prepared records had `"apply_url": ""`,
+   which only escaped notice because that day's phase 5 script read `url`.
+
+   Validate before phase 5 starts, and let it raise - it names every bad record
+   at once:
+   ```python
+   from job_record import load_prepared, apply_url_for
+   jobs = load_prepared()          # validates, and fills apply_url from url
+   ```
+   Use `apply_url_for(job)` for the adapter's `--url`.
 
 ---
 
@@ -293,6 +399,32 @@ python Scripts/ats/wellfound.py \
 (see `ACCOUNTS_TO_CREATE.md`), so until Sanket creates one every Wellfound job returns
 `login_required` and gets flagged, not submitted. The discovery half of the source works
 regardless.
+
+**Reading an adapter's result — do NOT write your own parser:**
+
+```python
+from ats.base import parse_result
+p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
+                   errors="replace", timeout=900)
+res = parse_result(p.stdout, p.stderr)
+```
+
+Every adapter ends with `emit_result()`, which prints the verdict twice: indented
+for the log, then a single `KESTREL_RESULT {...}` line for this parser.
+`parse_result` never raises.
+
+Two rules this exists to enforce:
+
+1. **Never hand-roll the parse.** On 2026-09-12 this phase's script accepted a
+   result only if one line both started with `{` and ended with `}`. Adapters
+   pretty-print, so that matched nothing — both verdicts that day were thrown
+   away as `no_json_result` despite the adapters working correctly.
+2. **Never re-run an adapter to recover a verdict.** That is what happened next
+   on 2026-09-12, and Wellfound uploaded the resume a second time. With safe
+   mode off it would have been a second submission. If `parse_result` returns
+   `error: "no_adapter_result"`, record the job as failed, log the `raw` field,
+   and move to the next job. The only sanctioned second call is the bounded
+   `external_ats` redirect below.
 
 **Handle results — MANDATORY after every job:**
 - **On `success: true`:**
@@ -353,12 +485,26 @@ This is the **only** email you send automatically to sanketp9499@gmail.com. It i
 
 **Cold emails (Phase 4) are saved as Gmail DRAFTS only** — never auto-sent. Sanket reviews and sends them manually.
 
-Use Gmail MCP `create_draft` (then immediately send it) to sanketp9499@gmail.com:
+Run it. These four flags now exist, take JSON lists, and the command builds the
+report and sends it through the same guarded path as everything else:
+
 ```bash
 python Scripts/email_monitor.py --applied '<json>' --captcha '<json>' --responses '<json>' --errors '<json>'
 ```
 
-Send the email. Sanket reads this each morning to see: applications sent, CAPTCHAs pending, interview invites, rejections, and errors.
+Add `--dry-run` to print the report without sending. Unknown flags are an error
+rather than being ignored, so if this command ever fails, the mismatch is real
+and belongs in the log - do not silently substitute a different call. Until
+2026-09-12 these flags were documented but undefined, `parse_known_args()` threw
+them away, and the command printed a fake sample report for a Shopify
+application nobody made.
+
+If Gmail OAuth is unavailable the send returns False and nothing is sent; in
+that case fall back to Gmail MCP `create_draft` (then send it) to
+sanketp9499@gmail.com, and log that you did.
+
+Sanket reads this each morning to see: applications sent, CAPTCHAs pending,
+interview invites, rejections, and errors.
 
 ---
 

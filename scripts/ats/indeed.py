@@ -17,7 +17,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from ats.base import launch_browser, fill_if_exists, upload_file, click_if_exists, check_success
+from ats.base import emit_result
 from daily_log import log
+import daily_log
 
 # Dedicated automation profile — NOT the user's everyday Chrome profile.
 # Sharing the real profile dir causes Playwright to collide with Chrome's
@@ -197,6 +199,9 @@ if __name__ == "__main__":
     p.add_argument("--dry-run",  action="store_true")
     args = p.parse_args()
 
+    if args.dry_run:
+        # Not an application: keep it out of the published run record.
+        daily_log.use_test_log()
     result = apply_indeed(
         args.url,
         args.resume,
@@ -204,4 +209,4 @@ if __name__ == "__main__":
         json.loads(args.answers),
         args.dry_run,
     )
-    print(json.dumps(result, indent=2))
+    emit_result(result)

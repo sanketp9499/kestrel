@@ -34,6 +34,23 @@ def init_log():
         name = "daily_log_{}.txt".format(today)
     _log_file = os.path.join(SCRIPTS, name)
 
+
+def use_test_log():
+    """Send the rest of this process's logging to the throwaway file.
+
+    init_log() keys off pytest's environment, which covers the suite but not an
+    adapter a human runs by hand with --dry-run to check it still works. That
+    traffic is not an application, and in the run record it is indistinguishable
+    from one: a `--dry-run` against a nonexistent Greenhouse board appended
+    "Greenhouse: resume upload failed at ..." to daily_log_2026-09-12.txt.
+
+    Safe to call after logging has already started - adapters log their startup
+    line before they finish parsing arguments.
+    """
+    global _log_file
+    _log_file = os.path.join(
+        SCRIPTS, "test_log_{}.txt".format(datetime.date.today().isoformat()))
+
 def log(msg):
     if _log_file is None:
         init_log()

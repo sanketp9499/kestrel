@@ -190,6 +190,12 @@ def send_summary(
 
     Returns True on success, False on failure or when credentials unavailable.
     """
+    # The summary carries company names, roles and what was applied to, so it
+    # is outbound mail like any other and is held with the rest.
+    import safe_mode
+    if safe_mode.guard("email"):
+        return False
+
     service = _get_gmail_service(profile)
     if service is None:
         return False
@@ -221,7 +227,7 @@ def send_summary(
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
 
-    to_addr = profile.get("email", "you@example.com")
+    to_addr = profile.get("email", "sanketp9499@gmail.com")
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = to_addr
@@ -238,21 +244,23 @@ def send_summary(
 
 
 # ── Extra IMAP mailboxes ──────────────────────────────────────────────────
-# Gmail is not the only place employer replies land. Third-party auto-apply
-# services submit from a proxy mailbox they issue you, and every reply to their
-# submissions goes there — Gmail never sees it, which is how interview requests
-# expire unseen. Reading those mailboxes over IMAP closes the hole without
-# waiting on any vendor to add forwarding.
+# Gmail is not the only place employer replies land. aiApply applies on Sanket's
+# behalf from a proxy mailbox it issues him, sanketp9499@mailboxcore.com — a
+# Migadu-hosted domain (MX aspmx1.migadu.com, and an _imaps._tcp SRV record
+# pointing at imap.migadu.com). Every reply to an aiApply submission goes there
+# and Gmail never sees it, which is how a ventureLAB interview request and an
+# expired Huzzle video interview both went unnoticed. Reading it over IMAP
+# closes that hole without waiting on aiApply to add a forwarding feature.
 #
 # Configure in Scripts/secrets.local.json:
 #   "imap_mailboxes": [
 #     {"label": "aiapply",
-#      "user": "you@proxy-mail.example.com",
+#      "user": "sanketp9499@mailboxcore.com",
 #      "password": "<the mailbox password shown at aiapply.co/app/inbox>",
-#      "host": "imap.example.com",
+#      "host": "imap.migadu.com",
 #      "port": 993}
 #   ]
-IMAP_DEFAULT_HOST = "imap.example.com"
+IMAP_DEFAULT_HOST = "imap.migadu.com"
 IMAP_DEFAULT_PORT = 993
 
 
@@ -351,7 +359,7 @@ def check_all_inboxes(profile: dict, days: int = 7) -> list[dict]:
     """Gmail plus every configured IMAP mailbox, in one list.
 
     This is what Phase 6 should call. check_inbox() on its own is blind to
-    everything the auto-apply service submitted.
+    everything aiApply submitted.
     """
     merged = list(check_inbox(profile))
     for r in merged:
@@ -454,7 +462,24 @@ if __name__ == "__main__":
     ap.add_argument("--imap-only", action="store_true",
                     help="scan only the IMAP mailboxes (use to test new credentials)")
     ap.add_argument("--days", type=int, default=7)
-    args, _ = ap.parse_known_args()
+    # Phase 7 of RUN_PIPELINE.md has documented these four since the pipeline
+    # was written, but they were never defined, and parse_known_args() threw
+    # them away without a word: the documented command printed a hardcoded
+    # sample report and exited 0. Every run worked around it by hand.
+    ap.add_argument("--applied", metavar="JSON",
+                    help="JSON list of jobs applied to today: "
+                         '[{"company":..,"role":..,"url":..,"ats_type":..}]')
+    ap.add_argument("--captcha", metavar="JSON", default="[]",
+                    help="JSON list of jobs left pending behind a CAPTCHA")
+    ap.add_argument("--responses", metavar="JSON", default="[]",
+                    help="JSON list of inbox results from check_all_inboxes()")
+    ap.add_argument("--errors", metavar="JSON", default="[]",
+                    help="JSON list of error strings from today's run")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="build and print the report without sending it")
+    # Not parse_known_args: silently discarding an unrecognised flag is what
+    # hid this bug for the life of the project.
+    args = ap.parse_args()
 
     if args.check_mail or args.imap_only:
         try:
@@ -483,12 +508,31 @@ if __name__ == "__main__":
                       f"{m['from'][:40]}  |  {m['subject'][:70]}")
         raise SystemExit(0)
 
-    sample = build_daily_report(
-        applied=[
-            {"company": "Shopify", "role": "Product Designer", "ats_type": "Greenhouse"}
-        ],
-        captcha_pending=[],
-        responses=[],
-        errors=[],
-    )
-    print(json.dumps(sample, indent=2))
+    if args.applied is None:
+        # There used to be a hardcoded "sample" report here, printed for a
+        # Shopify application nobody made. It looked exactly like a real report,
+        # and it is what the documented phase 7 command actually produced.
+        ap.print_usage()
+        raise SystemExit("\nNothing to report on. Pass --applied '<json>' "
+                         "(see phase 7 of RUN_PIPELINE.md) or --check-mail.")
+
+    def _load(flag, raw):
+        try:
+            value = json.loads(raw)
+        except ValueError as e:
+            raise SystemExit(f"{flag}: not valid JSON ({e})")
+        if not isinstance(value, list):
+            raise SystemExit(f"{flag}: expected a JSON list, got {type(value).__name__}")
+        return value
+
+    applied = _load("--applied", args.applied)
+    captcha = _load("--captcha", args.captcha)
+    responses = _load("--responses", args.responses)
+    errors = _load("--errors", args.errors)
+
+    if args.dry_run:
+        report = build_daily_report(applied, captcha, responses, errors)
+        print("[dry run] built the report, not sending it")
+    else:
+        report = send_daily_report(applied, captcha, responses, errors)
+    print(json.dumps(report, indent=2, ensure_ascii=False))

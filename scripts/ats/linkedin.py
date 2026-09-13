@@ -15,7 +15,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from ats.base import launch_browser, fill_if_exists, upload_file, click_if_exists, check_success, answer_custom_questions
+from ats.base import emit_result
 from daily_log import log
+import daily_log
 
 # Dedicated automation profile — NOT the user's everyday Chrome profile.
 # Sharing the real profile dir causes Playwright to collide with Chrome's
@@ -299,6 +301,9 @@ if __name__ == "__main__":
     p.add_argument("--role",     default="", help="Role title (used by the Q&A bank for context)")
     args = p.parse_args()
 
+    if args.dry_run:
+        # Not an application: keep it out of the published run record.
+        daily_log.use_test_log()
     profile = json.load(open(args.profile, encoding="utf-8"))
     secrets_path = os.path.join(os.path.dirname(args.profile), "secrets.local.json")
     if os.path.exists(secrets_path):
@@ -314,4 +319,4 @@ if __name__ == "__main__":
         company=args.company,
         role=args.role,
     )
-    print(json.dumps(result, indent=2))
+    emit_result(result)

@@ -58,12 +58,22 @@ NOT_DESIGN = re.compile(
     r"|outlet|key lead|store|retail|stocker"
     r"|nurse|pharmac|technician|mechanic|installer"
     r"|teacher|instructor|professor|tutor"
-    r"|intern(ship)?\b"
+    # Testing roles. "Mobile App Tester - User Experience & Feedback" cleared
+    # the gate on the words "User Experience" and reached phase 3, which
+    # rejected it as unpaid volunteer app testing. It is QA work, not design.
+    r"|\btester\b|\btesters\b|\bqa\b|quality assurance|\bplaytest"
+    # "Stage" is French for an internship: "Chercheur expérience utilisateur
+    # (UX) - Stage/Co-op 4 mois" cleared an English-only intern pattern.
+    r"|intern(ship)?\b|\bstage\b|\bstagiaire\b|\bco-?op\b|\balternance\b"
     r"|vice president|\bvp\b|chief|president|head of|director of"
     r")\b", re.I)
 
 # Reported, never enforced here.
-SENIOR = re.compile(r"\b(senior|sr\.?|staff|principal|lead|director|head)\b", re.I)
+# "senior" also arrives as the French "sénior", which is how "UX/UI Designer
+# sénior" cleared this gate and reached phase 3 at full cost.
+SENIOR = re.compile(
+    r"\b(senior|s[eé]nior|sr\.?|staff|principal|lead|director|head"
+    r"|confirm[eé]|exp[eé]riment[eé])\b", re.I)
 JUNIOR = re.compile(r"\b(junior|jr\.?|associate designer|entry[- ]level|graduate|intern)\b", re.I)
 
 CANADA = re.compile(
