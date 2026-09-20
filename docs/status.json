@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-19T08:25:16",
+  "generatedAt": "2026-09-20T08:03:40",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -38,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "18m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "19m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -54,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "19m ago",
+      "synced": "23h ago",
       "health": "working"
     },
     {
@@ -103,8 +103,8 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-19",
-    "daysSinceApplied": 27,
+    "lastLogDate": "2026-09-20",
+    "daysSinceApplied": 28,
     "stalled": true,
     "bots": [
       {
@@ -707,18 +707,25 @@
         "verdict": "clean",
         "exit": 0,
         "minutes": 25.1,
-        "bytes": 70324
+        "bytes": 70446
+      },
+      {
+        "date": "2026-09-20",
+        "verdict": "errors",
+        "exit": 1,
+        "minutes": 3.5,
+        "bytes": 2317
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-09-19",
-    "ranCount": 63,
+    "lastRun": "2026-09-20",
+    "ranCount": 64,
     "workedCount": 14,
-    "windowDays": 78,
-    "cleanRate": 22.2,
+    "windowDays": 79,
+    "cleanRate": 21.9,
     "medianMinutes": 30.5,
     "longestRunMinutes": 593.9,
-    "streak": 1,
+    "streak": 0,
     "noopThresholdMinutes": 2.0
   },
   "note": "Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works."
