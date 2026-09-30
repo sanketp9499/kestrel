@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-27T08:03:41",
+  "generatedAt": "2026-09-29T21:22:25",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -22,7 +22,7 @@
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "11d ago",
+      "synced": "14d ago",
       "health": "working"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "11d ago",
+      "synced": "14d ago",
       "health": "working"
     },
     {
@@ -38,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "7d ago",
+      "synced": "10d ago",
       "health": "working"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "7d ago",
+      "synced": "10d ago",
       "health": "working"
     },
     {
@@ -54,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "7d ago",
+      "synced": "10d ago",
       "health": "working"
     },
     {
@@ -103,8 +103,8 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-27",
-    "daysSinceApplied": 35,
+    "lastLogDate": "2026-09-29",
+    "daysSinceApplied": 37,
     "stalled": true,
     "bots": [
       {
@@ -763,15 +763,29 @@
         "verdict": "errors",
         "exit": 1,
         "minutes": 3.5,
-        "bytes": 2401
+        "bytes": 2523
+      },
+      {
+        "date": "2026-09-28",
+        "verdict": "partial",
+        "exit": null,
+        "minutes": null,
+        "bytes": 1303
+      },
+      {
+        "date": "2026-09-29",
+        "verdict": "errors",
+        "exit": 1,
+        "minutes": 3.6,
+        "bytes": 2400
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-09-27",
-    "ranCount": 70,
+    "lastRun": "2026-09-29",
+    "ranCount": 72,
     "workedCount": 14,
-    "windowDays": 86,
-    "cleanRate": 20.0,
+    "windowDays": 88,
+    "cleanRate": 19.4,
     "medianMinutes": 30.5,
     "longestRunMinutes": 593.9,
     "streak": 0,
