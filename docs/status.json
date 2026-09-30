@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-29T21:22:25",
+  "generatedAt": "2026-09-30T10:41:52",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -22,7 +22,7 @@
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "14d ago",
+      "synced": "15d ago",
       "health": "working"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "14d ago",
+      "synced": "15d ago",
       "health": "working"
     },
     {
@@ -38,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "10d ago",
+      "synced": "11d ago",
       "health": "working"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "10d ago",
+      "synced": "11d ago",
       "health": "working"
     },
     {
@@ -54,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "10d ago",
+      "synced": "11d ago",
       "health": "working"
     },
     {
@@ -103,8 +103,8 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-29",
-    "daysSinceApplied": 37,
+    "lastLogDate": "2026-09-30",
+    "daysSinceApplied": 38,
     "stalled": true,
     "bots": [
       {
@@ -777,15 +777,22 @@
         "verdict": "errors",
         "exit": 1,
         "minutes": 3.6,
-        "bytes": 2400
+        "bytes": 2522
+      },
+      {
+        "date": "2026-09-30",
+        "verdict": "errors",
+        "exit": 1,
+        "minutes": 3.6,
+        "bytes": 2317
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-09-29",
-    "ranCount": 72,
+    "lastRun": "2026-09-30",
+    "ranCount": 73,
     "workedCount": 14,
-    "windowDays": 88,
-    "cleanRate": 19.4,
+    "windowDays": 89,
+    "cleanRate": 19.2,
     "medianMinutes": 30.5,
     "longestRunMinutes": 593.9,
     "streak": 0,
