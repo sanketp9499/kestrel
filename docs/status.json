@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-09-30T10:41:52",
+  "generatedAt": "2026-10-01T08:03:39",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -103,8 +103,8 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-09-30",
-    "daysSinceApplied": 38,
+    "lastLogDate": "2026-10-01",
+    "daysSinceApplied": 39,
     "stalled": true,
     "bots": [
       {
@@ -784,15 +784,22 @@
         "verdict": "errors",
         "exit": 1,
         "minutes": 3.6,
+        "bytes": 2439
+      },
+      {
+        "date": "2026-10-01",
+        "verdict": "errors",
+        "exit": 1,
+        "minutes": 3.5,
         "bytes": 2317
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-09-30",
-    "ranCount": 73,
+    "lastRun": "2026-10-01",
+    "ranCount": 74,
     "workedCount": 14,
-    "windowDays": 89,
-    "cleanRate": 19.2,
+    "windowDays": 90,
+    "cleanRate": 18.9,
     "medianMinutes": 30.5,
     "longestRunMinutes": 593.9,
     "streak": 0,
