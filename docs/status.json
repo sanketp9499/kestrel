@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-10-01T08:03:39",
+  "generatedAt": "2026-10-02T08:32:54",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -22,7 +22,7 @@
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "15d ago",
+      "synced": "17d ago",
       "health": "working"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "15d ago",
+      "synced": "17d ago",
       "health": "working"
     },
     {
@@ -38,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "11d ago",
+      "synced": "13d ago",
       "health": "working"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "11d ago",
+      "synced": "13d ago",
       "health": "working"
     },
     {
@@ -54,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "11d ago",
+      "synced": "13d ago",
       "health": "working"
     },
     {
@@ -103,8 +103,8 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-10-01",
-    "daysSinceApplied": 39,
+    "lastLogDate": "2026-10-02",
+    "daysSinceApplied": 40,
     "stalled": true,
     "bots": [
       {
@@ -163,13 +163,6 @@
   },
   "history": {
     "days": [
-      {
-        "date": "2026-07-04",
-        "verdict": "noop",
-        "exit": 0,
-        "minutes": 0.5,
-        "bytes": 1606
-      },
       {
         "date": "2026-07-05",
         "verdict": "partial",
@@ -791,11 +784,18 @@
         "verdict": "errors",
         "exit": 1,
         "minutes": 3.5,
+        "bytes": 2454
+      },
+      {
+        "date": "2026-10-02",
+        "verdict": "errors",
+        "exit": 1,
+        "minutes": 3.5,
         "bytes": 2317
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-10-01",
+    "lastRun": "2026-10-02",
     "ranCount": 74,
     "workedCount": 14,
     "windowDays": 90,
