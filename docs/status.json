@@ -1,6 +1,6 @@
 {
   "mode": "telemetry",
-  "generatedAt": "2026-11-01T07:06:02",
+  "generatedAt": "2026-11-02T07:17:52",
   "counts": {
     "applied": 31,
     "captcha": 9,
@@ -22,7 +22,7 @@
       "name": "LinkedIn (Apify actor)",
       "glyph": "in",
       "color": "#0A66C2",
-      "synced": "46d ago",
+      "synced": "47d ago",
       "health": "working"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Indeed CA (Apify actor)",
       "glyph": "i",
       "color": "#2557A7",
-      "synced": "46d ago",
+      "synced": "47d ago",
       "health": "working"
     },
     {
@@ -38,7 +38,7 @@
       "name": "Wellfound (direct scrape)",
       "glyph": "W",
       "color": "#0F1728",
-      "synced": "42d ago",
+      "synced": "43d ago",
       "health": "working"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Greenhouse boards (public API)",
       "glyph": "G",
       "color": "#23A47F",
-      "synced": "42d ago",
+      "synced": "43d ago",
       "health": "working"
     },
     {
@@ -54,7 +54,7 @@
       "name": "Lever boards (public API)",
       "glyph": "L",
       "color": "#5A6ACF",
-      "synced": "42d ago",
+      "synced": "43d ago",
       "health": "working"
     },
     {
@@ -103,8 +103,8 @@
       }
     ],
     "scheduledTime": "8:00 AM daily",
-    "lastLogDate": "2026-11-01",
-    "daysSinceApplied": 70,
+    "lastLogDate": "2026-11-02",
+    "daysSinceApplied": 71,
     "stalled": true,
     "bots": [
       {
@@ -163,13 +163,6 @@
   },
   "history": {
     "days": [
-      {
-        "date": "2026-08-04",
-        "verdict": "noop",
-        "exit": 0,
-        "minutes": 0.3,
-        "bytes": 3752
-      },
       {
         "date": "2026-08-05",
         "verdict": "noop",
@@ -791,18 +784,25 @@
         "verdict": "clean",
         "exit": 0,
         "minutes": 5.9,
-        "bytes": 11216
+        "bytes": 11353
+      },
+      {
+        "date": "2026-11-02",
+        "verdict": "clean",
+        "exit": 0,
+        "minutes": 17.8,
+        "bytes": 15590
       }
     ],
     "firstRun": "2026-07-04",
-    "lastRun": "2026-11-01",
+    "lastRun": "2026-11-02",
     "ranCount": 78,
-    "workedCount": 26,
+    "workedCount": 27,
     "windowDays": 90,
-    "cleanRate": 33.3,
+    "cleanRate": 34.6,
     "medianMinutes": 16.2,
     "longestRunMinutes": 593.9,
-    "streak": 9,
+    "streak": 10,
     "noopThresholdMinutes": 2.0
   },
   "note": "Telemetry only. Company names, roles, salaries and documents are removed before publishing. See the repo README for how the pipeline works."
